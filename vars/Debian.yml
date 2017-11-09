@@ -1,0 +1,12 @@
+---
+mariadb_server__packages:
+  - 'mariadb-server-{{ mariadb_server__version }}'
+
+mariadb_server__service_name: mysql
+
+mariadb_server__pid_file: /var/run/mysqld/mysqld.pid
+
+mariadb_server__socket_file: /var/run/mysqld/mysqld.sock
+
+mariadb_server__log_dir_group: adm
+mariadb_server__log_dir_mode: 2750

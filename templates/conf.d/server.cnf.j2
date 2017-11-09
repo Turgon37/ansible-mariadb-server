@@ -1,0 +1,133 @@
+#
+# {{ ansible_managed }}
+#
+
+# These groups are read by MariaDB server.
+[server]
+#
+# * Basic Settings
+#
+user            = {{ mariadb_server__user_runas }}
+pid-file        = {{ mariadb_server__pid_file }}
+basedir         = {{ mariadb_server__basedir }}
+datadir         = {{ mariadb_server__datadir }}
+tmpdir          = {{ mariadb_server__tmpdir }}
+
+#
+# * Network Settings
+#
+socket          = {{ mariadb_server__socket_file }}
+{% if mariadb_server__skip_networking|bool %}
+skip-networking
+{% else %}
+bind-address    = {{ mariadb_server__bind_address|ipaddr }}
+port            = {{ mariadb_server__bind_port|int }}
+{% endif %}
+max_connections = {{ mariadb_server__max_connections|int }}
+{% if mariadb_server__skip_name_resolve %}
+skip-name-resolve
+{% endif %}
+
+lc-messages-dir = {{ mariadb_server__lc_messages_dir }}
+lc_messages     = {{ mariadb_server__lc_messages }}
+
+#
+# * Character sets
+#
+collation_server          = {{ mariadb_server__collation_server }}
+
+character_set_filesystem  = {{ mariadb_server__character_set_filesystem }}
+character_set_server      = {{ mariadb_server__character_set_server }}
+character_sets_dir        = {{ mariadb_server__character_sets_dir }}
+
+{% if mariadb_server__skip_external_locking %}
+skip-external-locking
+{% endif %}
+
+#
+# * Performance schema
+#
+performance_schema = {{ mariadb_server__performance_schema|bool|ternary('ON', 'OFF') }}
+
+#
+# * Fine Tuning
+#
+{% for key, value in mariadb_server__tuning_parameters|dictsort %}
+{{ key }}{{ ' ' * ((30 - key | length) | abs) }}= {{ value }}
+{% endfor %}
+
+#
+# * Query Cache Configuration
+#
+query_cache_type        = {{ mariadb_server__query_cache_type }}
+{% if mariadb_server__query_cache_type not in ["0", "OFF"] %}
+{%   for key, value in mariadb_server__query_cache_parameters|dictsort %}
+{{ key }}{{ ' ' * ((30 - key | length)|abs) }}= {{ value }}
+{%   endfor %}
+{% endif %}
+
+#
+# * Logging and Replication
+#
+# Both location gets rotated by the cronjob.
+# Be aware that this log type is a performance killer.
+general_log_file        = {{ mariadb_server__log_dir }}/mysql.log
+general_log             = {{ mariadb_server__general_log|bool|ternary('1', '0') }}
+
+# Error log - should be very few entries.
+log_error = {{ mariadb_server__log_dir }}/error.log
+
+# Slow queries
+slow_query_log_file     = {{ mariadb_server__log_dir }}/mysql-slow.log
+slow_query_log          = {{ mariadb_server__slow_query_log|bool|ternary('1', '0') }}
+long_query_time         = {{ mariadb_server__long_query_time|int }}
+log_queries_not_using_indexes
+
+# The following can be used as easy to replay backup logs or for replication.
+# note: if you are setting up a replication slave, see README.Debian about
+#       other settings you may need to change.
+#server-id              = 1
+#log_bin                        = /var/log/mysql/mysql-bin.log
+expire_logs_days        = 10
+max_binlog_size         = 100M
+#binlog_do_db           = include_database_name
+#binlog_ignore_db       = include_database_name
+
+#
+# * InnoDB
+#
+{% for key, value in mariadb_server__innodb_parameters | dictsort %}
+{{ key }}{{ ' ' * ((30 - key | length) | abs) }}= {{ value }}
+{% endfor %}
+
+#
+# * MyISAM
+#
+{% for key, value in mariadb_server__myisam_parameters | dictsort %}
+{{ key }}{{ ' ' * ((30 - key | length) | abs) }}= {{ value }}
+{% endfor %}
+
+#
+# * TLS
+#
+{% if mariadb_server__ssl_ca is defined %}
+ssl-ca          = {{ mariadb_server__ssl_ca }}
+{% endif %}
+{% if mariadb_server__ssl_capath is defined %}
+ssl-capath      = {{ mariadb_server__ssl_capath }}
+{% endif %}
+{% if mariadb_server__ssl_cert is defined %}
+ssl-cert        = {{ mariadb_server__ssl_cert }}
+{% endif %}
+{% if mariadb_server__ssl_key is defined %}
+ssl-key        = {{ mariadb_server__ssl_key }}
+{% endif %}
+{% if mariadb_server__ssl_cipher is defined %}
+ssl-cipher     = {{ mariadb_server__ssl_cipher }}
+{% endif %}
+{% if mariadb_server__ssl_crl is defined %}
+ssl-crl        = {{ mariadb_server__ssl_crl }}
+{% endif %}
+{% if mariadb_server__ssl_crlpath is defined %}
+ssl-crlpath        = {{ mariadb_server__ssl_crlpath }}
+{% endif %}

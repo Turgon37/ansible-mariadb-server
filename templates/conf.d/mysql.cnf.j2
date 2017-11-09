@@ -1,0 +1,30 @@
+#
+# {{ ansible_managed }}
+#
+
+[mysqld]
+#
+# * Character sets
+#
+# Default is Latin1, if you need UTF-8 set all this (also in client section)
+#
+collation_server       = {{ mariadb_server__collation_server }}
+collation-server       = {{ mariadb_server__collation_server }}
+character-set-server   = {{ mariadb_server__character_set_server }}
+character_set_server   = {{ mariadb_server__character_set_server }}
+
+# This was formally known as [safe_mysqld]. Both versions are currently parsed.
+[mysqld_safe]
+socket          = {{ mariadb_server__socket_file }}
+nice            = 0
+skip_log_error
+syslog
+
+[mysqldump]
+quick
+quote-names
+max_allowed_packet      = 16M
+
+[mysql]
+# faster start of mysql but no tab completition
+no-auto-rehash

@@ -1,0 +1,132 @@
+---
+# defaults file for mariadb-server
+
+# Simple placeholder to allow other roles to detect this role
+mariadb_server__role: True
+
+# List of packages to install
+mariadb_server__packages: []
+
+# The MariaDB version to install
+mariadb_server__version: '10.1'
+
+# The name of the systemd docker service
+mariadb_server__service_name: mariadb
+
+# User configuration
+mariadb_server__user_runas: mysql
+mariadb_server__group_runas: mysql
+
+# Path configuration
+mariadb_server__configuration_dir: /etc/mysql
+mariadb_server__configuration_file: '{{ mariadb_server__configuration_dir }}/my.cnf'
+mariadb_server__include_configuration_dir: '{{ mariadb_server__configuration_dir }}/conf.d'
+
+# Bind address for network
+mariadb_server__bind_address: 0.0.0.0
+mariadb_server__bind_port: 3306
+mariadb_server__skip_networking: False
+mariadb_server__socket_file: /var/lib/mysql/mysqld.sock
+mariadb_server__max_connections: 100
+
+mariadb_server__skip_name_resolve: True
+
+mariadb_server__pid_file: /var/lib/mysql/mysqld.pid
+mariadb_server__datadir: /var/lib/mysql
+mariadb_server__tmpdir: /tmp
+mariadb_server__basedir: /usr
+mariadb_server__lc_messages_dir: /usr/share/mysql
+mariadb_server__lc_messages: en_us
+mariadb_server__log_dir: /var/log/mysql
+
+mariadb_server__general_log: False
+mariadb_server__slow_query_log: False
+
+mariadb_server__long_query_time: 2
+
+mariadb_server__collation_server: utf8_general_ci
+
+mariadb_server__character_sets_dir: /usr/share/mysql/charsets/
+mariadb_server__character_set_filesystem: binary
+mariadb_server__character_set_server: utf8
+
+mariadb_server__skip_external_locking: True
+
+mariadb_server__performance_schema: True
+
+
+# select mode for query cache
+mariadb_server__query_cache_type: '0'
+
+# Add query cache settings
+# This variable is intended to be used in Ansible’s global inventory.
+mariadb_server__query_cache_global_parameters: {}
+
+# This variable is intended to be used in a host inventory group of Ansible
+# (only one host group is supported).
+mariadb_server__query_cache_group_parameters: {}
+
+# This variable is intended to be used in the inventory of hosts.
+mariadb_server__query_cache_host_parameters: {}
+
+# Combine all customs parameters
+mariadb_server__query_cache_parameters: '{{ mariadb_server__query_cache_global_parameters
+                                | combine(mariadb_server__query_cache_group_parameters)
+                                | combine(mariadb_server__query_cache_host_parameters) }}'
+
+
+
+# This variable is intended to be used in Ansible’s global inventory.
+mariadb_server__tuning_global_parameters: {}
+
+# This variable is intended to be used in a host inventory group of Ansible
+# (only one host group is supported).
+mariadb_server__tuning_group_parameters: {}
+
+# This variable is intended to be used in the inventory of hosts.
+mariadb_server__tuning_host_parameters: {}
+
+# Combine all customs parameters
+mariadb_server__tuning_parameters: '{{ mariadb_server__tuning_global_parameters
+                                | combine(mariadb_server__tuning_group_parameters)
+                                | combine(mariadb_server__tuning_host_parameters) }}'
+
+
+
+# This variable is intended to be used in Ansible’s global inventory.
+mariadb_server__innodb_global_parameters: {}
+
+# This variable is intended to be used in a host inventory group of Ansible
+# (only one host group is supported).
+mariadb_server__innodb_group_parameters: {}
+
+# This variable is intended to be used in the inventory of hosts.
+mariadb_server__innodb_host_parameters: {}
+
+mariadb_server__innodb_parameters: '{{ mariadb_server__innodb_global_parameters
+                                | combine(mariadb_server__innodb_group_parameters)
+                                | combine(mariadb_server__innodb_host_parameters) }}'
+
+## MyISAM
+# This variable is intended to be used in Ansible’s global inventory.
+mariadb_server__myisam_global_parameters: {}
+
+# This variable is intended to be used in a host inventory group of Ansible
+# (only one host group is supported).
+mariadb_server__myisam_group_parameters: {}
+
+# This variable is intended to be used in the inventory of hosts.
+mariadb_server__myisam_host_parameters: {}
+
+mariadb_server__myisam_parameters: '{{ mariadb_server__myisam_global_parameters
+                                | combine(mariadb_server__myisam_group_parameters)
+                                | combine(mariadb_server__myisam_host_parameters) }}'
+
+# TLS configuration
+#mariadb_server__ssl_ca:
+#mariadb_server__ssl_capath:
+#mariadb_server__ssl_cert: 
+#mariadb_server__ssl_key: 
+#mariadb_server__ssl_cipher:
+#mariadb_server__ssl_crl:
+#mariadb_server__ssl_crlpath:

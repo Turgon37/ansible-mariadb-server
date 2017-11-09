@@ -1,0 +1,6 @@
+---
+
+- name: Assert required variables
+  assert:
+    that:
+      - mariadb_server__query_cache_type|string in ['0', 'OFF', '1', 'ON', '2', 'DEMAND']

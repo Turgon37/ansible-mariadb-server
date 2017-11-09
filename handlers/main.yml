@@ -1,0 +1,7 @@
+---
+# handlers file for mariadb-server
+
+- name: restart-mariadb
+  service:
+    name:  '{{ mariadb_server__service_name }}'
+    state: restarted

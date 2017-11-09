@@ -1,0 +1,29 @@
+---
+
+- name: Add MariaDB repo from template
+  template:
+    src:   mariadb_centos.repo.j2
+    dest:  /etc/yum.repos.d/MariaDB.repo
+    owner: root
+    group: root
+    mode:  0644
+  when: ansible_distribution == 'CentOS'
+
+- name: Install mariadb server packages
+  package:
+    name:  '{{ item }}'
+    state: present
+  with_items: '{{ mariadb_server__packages }}'
+  register: _mariadb_server__packages
+
+- name: Wait for the server to init its database
+  pause:
+    seconds: 10
+    prompt: DONT KILL THIS PAUSE
+  when: _mariadb_server__packages|changed
+
+- name: Stop the database to allow full configuration
+  service:
+    name:  '{{ mariadb_server__service_name }}'
+    state: stopped
+  when: _mariadb_server__packages|changed

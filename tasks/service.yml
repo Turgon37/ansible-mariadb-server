@@ -1,0 +1,7 @@
+---
+
+- name: Ensure MariaDB daemon is started and enabled on boot
+  service:
+    name:    '{{ mariadb__service_name }}'
+    enabled: yes
+    state:   started
