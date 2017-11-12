@@ -1,6 +1,7 @@
 ---
 mariadb_server__packages:
   - 'mariadb-server-{{ mariadb_server__version }}'
+  - python-mysqldb
 
 mariadb_server__service_name: mysql
 
