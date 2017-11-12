@@ -21,6 +21,12 @@
 - import_tasks: configure.yml
   tags: ['mariadb-server', 'mariadb-server-configure']
 
+- import_tasks: service.yml
+  tags: ['mariadb-server', 'mariadb-server-service']
+
+- meta: flush_handlers
+  tags: ['always']
+
 - import_tasks: databases.yml
   tags: ['mariadb-server', 'mariadb-server-databases']
 

@@ -5,6 +5,25 @@
     name:  '{{ mariadb_server__service_name }}'
     state: started
 
+- name: Secure root user
+  mysql_user:
+    name:              '{{ mariadb_server__root_login }}'
+    password:          '{{ mariadb_server__root_password }}'
+    host_all:          yes
+    login_unix_socket: '{{ mariadb_server__socket_file }}'
+    login_user:        '{{ mariadb_server__root_login }}'
+    login_password:    '{{ mariadb_server__root_password }}'
+    state:             'present'
+  when: mariadb_server__root_password is defined
+  register: _mariadb_server__users_root
+  ignore_errors: True
+  no_log: yes
+
+- name: Extract error message from root user setup
+  fail:
+    msg: "{{ _mariadb_server__users_root.msg }}"
+  when: _mariadb_server__users_root|failed
+
 - name: Setup MariaDB users
   mysql_user:
     name:              '{{ item.user }}'
