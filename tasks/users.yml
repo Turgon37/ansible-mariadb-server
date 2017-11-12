@@ -13,6 +13,8 @@
     encrypted:         '{{ item.encrypted|d(omit) }}'
     priv:              '{{ item.priv|d(omit) }}'
     login_unix_socket: '{{ mariadb_server__socket_file }}'
+    login_user:        '{{ mariadb_server__root_login }}'
+    login_password:    '{{ mariadb_server__root_password|d(omit) }}'
     state:             "{{ item.state|d('present') }}"
   with_items: '{{ mariadb_server__users }}'
   register: _mariadb_server__users

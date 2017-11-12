@@ -22,6 +22,16 @@ mariadb_server__configuration_dir: /etc/mysql
 mariadb_server__configuration_file: '{{ mariadb_server__configuration_dir }}/my.cnf'
 mariadb_server__include_configuration_dir: '{{ mariadb_server__configuration_dir }}/conf.d'
 
+# Specify name of root account to use for ansible configuration
+mariadb_server__root_login: 'root'
+# Specify an optional password to setup and to use for root account
+#mariadb_server__root_password:
+
+# List of user to create
+mariadb_server__users: []
+# List of database to create
+mariadb_server__databases: {}
+
 # Bind address for network
 mariadb_server__bind_address: 0.0.0.0
 mariadb_server__bind_port: 3306
