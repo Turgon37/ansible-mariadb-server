@@ -1,0 +1,30 @@
+---
+
+- name: Check if the data dir must be initialized
+  stat:
+    path: '{{ mariadb_server__initdb_check_file }}'
+  register: _mariadb_server__initdb_check_file
+  check_mode: False
+
+- name: Ensure MariaDB is stopped
+  service:
+    name:  '{{ mariadb_server__service_name }}'
+    state: stopped
+  when: not _mariadb_server__initdb_check_file.stat.exists
+
+- name: Check if the data dir must be initialized
+  command: >
+    {% if ansible_check_mode %} /usr/bin/env echo 'DATABASE MUST BE INITIALIZED WITH '{% endif %}
+    mysql_install_db
+    --user={{ mariadb_server__user_runas }}
+    {% if mariadb_server__skip_name_resolve %} --skip-name-resolve{% endif %}
+    --basedir={{ mariadb_server__basedir }}
+    --datadir={{ mariadb_server__datadir }}
+    --auth-root-authentication-method={{ mariadb_server__initdb_insecure|bool|ternary('normal', 'socket') }}
+    --auth-root-socket-user={{ mariadb_server__root_login }}
+    {{ mariadb_server__service_options|join(' ') }}
+  args:
+    creates: '{{ mariadb_server__initdb_check_file }}'
+  when: not _mariadb_server__initdb_check_file.stat.exists
+  check_mode: False
+  notify: ['restart-mariadb-server']

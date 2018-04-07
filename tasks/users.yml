@@ -4,6 +4,7 @@
   service:
     name:  '{{ mariadb_server__service_name }}'
     state: started
+  tags: ['mariadb-server', 'mariadb-server-users']
 
 - name: Secure root user
   mysql_user:
@@ -18,11 +19,14 @@
   register: _mariadb_server__users_root
   ignore_errors: True
   no_log: yes
+  tags: ['mariadb-server', 'mariadb-server-users']
 
+# Temporary because ansible do not hide password
 - name: Extract error message from root user setup
   fail:
     msg: "{{ _mariadb_server__users_root.msg }}"
-  when: _mariadb_server__users_root|failed
+  when: _mariadb_server__users_root is failed
+  tags: ['mariadb-server', 'mariadb-server-users']
 
 - name: Setup MariaDB users
   mysql_user:
@@ -39,8 +43,11 @@
   register: _mariadb_server__users
   ignore_errors: True
   no_log: yes
+  tags: ['mariadb-server', 'mariadb-server-users']
 
+# Temporary because ansible do not hide password
 - name: Extract error message from users setup
   fail:
     msg: "{{ _mariadb_server__users.results|reject('success')|map(attribute='msg')|list|join(' ') }}"
-  when: _mariadb_server__users|failed
+  when: _mariadb_server__users is failed
+  tags: ['mariadb-server', 'mariadb-server-users']

@@ -1,7 +1,49 @@
 ---
 
+- name: Ensure systemd override directory is created
+  file:
+    path:  '{{ mariadb_server__systemd_override_options_dir }}'
+    state: directory
+  when: ansible_service_mgr == 'systemd'
+
+- name: Install systemd options override file
+  template:
+    src:  systemd.service.d.j2
+    dest: '{{ mariadb_server__systemd_override_options_dir }}/override.conf'
+  when: ansible_service_mgr == 'systemd'
+  notify: ['restart-mariadb-server']
+  register: _mariadb_server__service
+
+- name: Reload systemd
+  systemd:
+    name:          '{{ mariadb_server__service_name }}'
+    enabled:       yes
+    daemon_reload: yes
+  when: ansible_service_mgr == 'systemd' and _mariadb_server__service is changed
+
+- meta: flush_handlers
+
 - name: Ensure MariaDB daemon is started and enabled on boot
   service:
     name:    '{{ mariadb_server__service_name }}'
-    enabled: yes
-    state:   started
+    enabled: '{{ mariadb_server__service_enabled|bool }}'
+    state:   "{{ mariadb_server__service_enabled|bool|ternary('started', 'stopped') }}"
+
+# restart feature
+- name: Test if MariaDB need to be restart
+  stat:
+    path: '{{ mariadb_server__service_restart_stamp_file }}'
+  register: _mariadb_server__restart_file
+  check_mode: False
+
+- name: Restart MariaDB if needed and allowed
+  service:
+    name:  '{{ mariadb_server__service_name }}'
+    state: restarted
+  when: mariadb_server__service_enabled|bool and mariadb_server__service_restartable|bool and _mariadb_server__restart_file.stat.exists
+
+- name: Remove stamp file if docker daemon is disabled
+  file:
+    path:  '{{ mariadb_server__service_restart_stamp_file }}'
+    state: absent
+  when: not mariadb_server__service_enabled|bool

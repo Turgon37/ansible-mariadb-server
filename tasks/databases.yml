@@ -3,6 +3,7 @@
   service:
     name:  '{{ mariadb_server__service_name }}'
     state: started
+  tags: ['mariadb-server', 'mariadb-server-databases']
 
 - name: Setup MariaDB databases
   mysql_db:
@@ -14,3 +15,4 @@
     login_password:    '{{ mariadb_server__root_password|d(omit) }}'
     state:             "{{ item.value.state|d('present') }}"
   with_dict: '{{ mariadb_server__databases }}'
+  tags: ['mariadb-server', 'mariadb-server-databases']

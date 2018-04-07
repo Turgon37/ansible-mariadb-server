@@ -1,8 +1,10 @@
 ---
 mariadb_server__packages:
-  - MariaDB-server
   - MySQL-python
 # - MariaDB-client
+
+mariadb_server__packages_names:
+  - MariaDB-server
 
 mariadb_server__configuration_dir: /etc/my.cnf.d
 mariadb_server__configuration_file: '/etc/my.cnf'

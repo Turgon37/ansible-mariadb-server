@@ -5,62 +5,68 @@
     name:   '{{ mariadb_server__group_runas }}'
     system: yes
     state:  present
-  notify: [ 'restart-mariadb' ]
+  notify: [ 'restart-mariadb-server' ]
 
 - name: "Ensure service user '{{ mariadb_server__user_runas }}' is present"
   user:
     name:       '{{ mariadb_server__user_runas }}'
     group:      '{{ mariadb_server__group_runas }}'
     shell:      /bin/false
-    home:       '{{ mariadb_server__datadir }}'
+    home:       /nonexistent
     createhome: no
     system:     yes
     state:      present
-  notify: [ 'restart-mariadb' ]
+  notify: [ 'restart-mariadb-server' ]
 
-- name: Ensure configuration directory exists
+- name: Ensure configuration directories exists
   file:
     path:  '{{ mariadb_server__configuration_dir }}'
     owner: root
     group: root
     mode:  0755
     state: directory
+  with_items:
+    - '{{ mariadb_server__configuration_dir }}'
+    - '{{ mariadb_server__include_configuration_dir }}'
 
-- name: Ensure configuration included directory exists
+- name: Ensure working data directory exists
   file:
-    name:  '{{ mariadb_server__include_configuration_dir }}'
-    owner: root
-    group: root
-    mode:  0755
-    state: directory
-
-- name: Ensure log directory exists
-  file:
-    name:  '{{ mariadb_server__log_dir }}'
+    name:  '{{ item }}'
     owner: '{{ mariadb_server__user_runas }}'
-    group: '{{ mariadb_server__log_dir_group|d(mariadb_server__group_runas) }}'
-    mode:  "{{ mariadb_server__log_dir_mode|d('0755') }}"
+    group: '{{ mariadb_server__group_runas }}'
+    mode:  0750
     state: directory
+  with_items:
+    - '{{ mariadb_server__datadir }}'
+    - '{{ mariadb_server__log_dir }}'
+    - '{{ mariadb_server__binlog_dir }}'
+    - '{{ mariadb_server__error_log_file|dirname }}'
+    - '{{ mariadb_server__slow_query_log_file|dirname }}'
+    - '{{ mariadb_server__general_log_file|dirname }}'
 
-- name: Create MariaDB configuration
+- name: Create MariaDB main configuration
   template:
-    src:   my.cnf.j2
-    dest:  '{{ mariadb_server__configuration_file }}'
-    owner: root
-    group: root
-    mode:  0644
-  notify: ['restart-mariadb']
+    src:      my.cnf.j2
+    dest:     '{{ item }}'
+    owner:    root
+    group:    root
+    mode:     0644
+    validate: '{{ mariadb_server__configuration_validator }}'
+  with_items:
+    - '{{ mariadb_server__configuration_file }}'
+    - '{{ mariadb_server__configuration_alternates_files }}'
+  notify: ['restart-mariadb-server']
 
 - name: List installed configuration files
   find:
     paths:     '{{ mariadb_server__include_configuration_dir }}'
     file_type: file
-  register: _mariadb__installed_config_files
+  register: _mariadb_server__installed_config_files
   check_mode: no
 
 - name: List defined templates files
   set_fact:
-    _mariadb__template_config_files: "{{ _mariadb__template_config_files|d([])|union([ item|basename|replace(\'.j2\', \'\') ]) }}"
+    _mariadb_server__template_config_files: "{{ _mariadb_server__template_config_files|d([])|union([ item|basename|replace('.j2', '') ]) }}"
   with_fileglob:
     - ../templates/conf.d/*.j2
 
@@ -68,17 +74,18 @@
   file:
     path:  '{{ item.path }}'
     state: absent
-  with_items: '{{ _mariadb__installed_config_files.files }}'
-  when: item.path|basename not in _mariadb__template_config_files
-  notify: ['restart-mariadb']
+  with_items: '{{ _mariadb_server__installed_config_files.files }}'
+  when: item.path|basename not in _mariadb_server__template_config_files
+  notify: ['restart-mariadb-server']
 
 - name: Create MariaDB configuration files
   template:
-    src:   '{{ item }}'
-    dest:  "{{ mariadb_server__include_configuration_dir }}/{{ item|basename|replace('.j2','') }}"
-    owner: root
-    group: root
-    mode:  0644
+    src:      '{{ item }}'
+    dest:     "{{ mariadb_server__include_configuration_dir }}/{{ item|basename|replace('.j2', '') }}"
+    owner:    root
+    group:    root
+    mode:     0644
+    validate: '{{ mariadb_server__configuration_validator }}'
   with_fileglob:
     - ../templates/conf.d/*.j2
-  notify: ['restart-mariadb']
+  notify: ['restart-mariadb-server']

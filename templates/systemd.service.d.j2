@@ -1,0 +1,9 @@
+# {{ ansible_managed }}
+
+[Service]
+Environment="MYSQLD_OPTS={{ mariadb_server__service_options|join(' ') }}"
+
+{% if not mariadb_server__service_restartable|bool %}
+# Remove must restart stamp file
+ExecStartPre=-/usr/bin/env rm -f {{ mariadb_server__service_restart_stamp_file }}
+{% endif %}

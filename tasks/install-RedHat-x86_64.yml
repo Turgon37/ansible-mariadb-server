@@ -1,0 +1,23 @@
+---
+
+- fail:
+    msg: Unsupported package manager
+  when: ansible_pkg_mgr != 'yum'
+  tags: ['always']
+
+- name: Add MariaDB repo from template
+  template:
+    src:   mariadb_centos.repo.j2
+    dest:  /etc/yum.repos.d/MariaDB.repo
+    owner: root
+    group: root
+    mode:  0644
+  tags: ['mariadb-server', 'mariadb-server-install']
+
+- name: Install server package
+  yum:
+    name:  '{{ item }}'
+    state: present
+  with_items: '{{ mariadb_server__packages_names }}'
+  register: _mariadb_server__packages
+  tags: ['mariadb-server', 'mariadb-server-install']

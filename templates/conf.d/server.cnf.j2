@@ -35,9 +35,12 @@ lc_messages     = {{ mariadb_server__lc_messages }}
 # * Character sets
 #
 collation_server          = {{ mariadb_server__collation_server }}
+collation-server          = {{ mariadb_server__collation_server }}
 
 character_set_filesystem  = {{ mariadb_server__character_set_filesystem }}
 character_set_server      = {{ mariadb_server__character_set_server }}
+character-set-server      = {{ mariadb_server__character_set_server }}
+
 character_sets_dir        = {{ mariadb_server__character_sets_dir }}
 
 {% if mariadb_server__skip_external_locking %}
@@ -53,7 +56,7 @@ performance_schema = {{ mariadb_server__performance_schema|bool|ternary('ON', 'O
 # * Fine Tuning
 #
 {% for key, value in mariadb_server__tuning_parameters|dictsort %}
-{{ key }}{{ ' ' * ((30 - key | length) | abs) }}= {{ value }}
+{{ key }}              = {{ value }}
 {% endfor %}
 
 #
@@ -62,49 +65,47 @@ performance_schema = {{ mariadb_server__performance_schema|bool|ternary('ON', 'O
 query_cache_type        = {{ mariadb_server__query_cache_type }}
 {% if mariadb_server__query_cache_type not in ["0", "OFF"] %}
 {%   for key, value in mariadb_server__query_cache_parameters|dictsort %}
-{{ key }}{{ ' ' * ((30 - key | length)|abs) }}= {{ value }}
+{{ key }}               = {{ value }}
 {%   endfor %}
 {% endif %}
 
 #
 # * Logging and Replication
 #
-# Both location gets rotated by the cronjob.
-# Be aware that this log type is a performance killer.
-general_log_file        = {{ mariadb_server__log_dir }}/mysql.log
+general_log_file        = {{ mariadb_server__general_log_file }}
 general_log             = {{ mariadb_server__general_log|bool|ternary('1', '0') }}
 
 # Error log - should be very few entries.
-log_error = {{ mariadb_server__log_dir }}/error.log
+log_error               = {{ mariadb_server__error_log_file }}
 
 # Slow queries
-slow_query_log_file     = {{ mariadb_server__log_dir }}/mysql-slow.log
+slow_query_log_file     = {{ mariadb_server__slow_query_log_file }}
 slow_query_log          = {{ mariadb_server__slow_query_log|bool|ternary('1', '0') }}
 long_query_time         = {{ mariadb_server__long_query_time|int }}
 log_queries_not_using_indexes
 
-# The following can be used as easy to replay backup logs or for replication.
-# note: if you are setting up a replication slave, see README.Debian about
-#       other settings you may need to change.
-#server-id              = 1
-#log_bin                        = /var/log/mysql/mysql-bin.log
+# Binary logs
+log_bin                 = {{ mariadb_server__binlog_dir }}/binlog.log
 expire_logs_days        = 10
 max_binlog_size         = 100M
 #binlog_do_db           = include_database_name
 #binlog_ignore_db       = include_database_name
 
+# Replication
+server-id               = {{ 4294967290|random(seed=inventory_hostname)+1 }}
+
 #
 # * InnoDB
 #
 {% for key, value in mariadb_server__innodb_parameters | dictsort %}
-{{ key }}{{ ' ' * ((30 - key | length) | abs) }}= {{ value }}
+{{ key }}               = {{ value }}
 {% endfor %}
 
 #
 # * MyISAM
 #
 {% for key, value in mariadb_server__myisam_parameters | dictsort %}
-{{ key }}{{ ' ' * ((30 - key | length) | abs) }}= {{ value }}
+{{ key }}                = {{ value }}
 {% endfor %}
 
 #

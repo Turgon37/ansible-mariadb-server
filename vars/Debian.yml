@@ -1,9 +1,14 @@
 ---
-mariadb_server__packages:
-  - 'mariadb-server-{{ mariadb_server__version }}'
-  - python-mysqldb
 
-mariadb_server__service_name: mysql
+mariadb_server__required_packages_names:
+  - dirmngr
+  - python-mysqldb
+  - software-properties-common
+
+mariadb_server__repository_base_url: 'http://ftp.igh.cnrs.fr/pub/mariadb/repo/{{ mariadb_server__version }}/debian'
+
+mariadb_server__packages_names:
+  - 'mariadb-server-{{ mariadb_server__version }}'
 
 mariadb_server__pid_file: /var/run/mysqld/mysqld.pid
 
