@@ -43,6 +43,9 @@
     - '{{ mariadb_server__error_log_file|dirname }}'
     - '{{ mariadb_server__slow_query_log_file|dirname }}'
     - '{{ mariadb_server__general_log_file|dirname }}'
+    - '{{ mariadb_server__aria_log_dir }}'
+    - '{{ mariadb_server__innodb_log_dir }}'
+    - '{{ mariadb_server__innodb_data_home_dir }}'
 
 - name: Create MariaDB main configuration
   template:
@@ -53,8 +56,18 @@
     mode:     0644
     validate: '{{ mariadb_server__configuration_validator }}'
   with_items:
-    - '{{ mariadb_server__configuration_file }}'
+    - '{{ mariadb_server__main_configuration_file }}'
     - '{{ mariadb_server__configuration_alternates_files }}'
+  notify: ['restart-mariadb-server']
+
+- name: Create MariaDB server configuration
+  template:
+    src:      server.cnf.j2
+    dest:     '{{ mariadb_server__server_configuration_file }}'
+    owner:    root
+    group:    root
+    mode:     0644
+    validate: '{{ mariadb_server__configuration_validator }}'
   notify: ['restart-mariadb-server']
 
 - name: List installed configuration files
@@ -88,4 +101,3 @@
     validate: '{{ mariadb_server__configuration_validator }}'
   with_fileglob:
     - ../templates/conf.d/*.j2
-  notify: ['restart-mariadb-server']

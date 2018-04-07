@@ -11,4 +11,5 @@
 #
 # include all files from the config directory
 #
+!include {{ mariadb_server__server_configuration_file }}
 !includedir {{ mariadb_server__include_configuration_dir }}

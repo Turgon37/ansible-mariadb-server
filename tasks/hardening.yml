@@ -1,0 +1,98 @@
+---
+
+- name: Ensure MariaDB is running
+  service:
+    name:  '{{ mariadb_server__service_name }}'
+    state: started
+  tags: ['mariadb-server', 'mariadb-server-hardening']
+
+- name: Remove empty users
+  mysql_user:
+    name:                 ''
+    host_all:             yes
+    login_unix_socket:    '{{ mariadb_server__socket_file }}'
+    login_user:           '{{ mariadb_server__root_login }}'
+    login_password:       '{{ mariadb_server__root_password }}'
+    check_implicit_admin: True
+    state:                absent
+  ignore_errors: True
+  register: _mariadb_server__remove_empty_users
+  tags: ['mariadb-server', 'mariadb-server-hardening']
+
+- name: Fail if no action is possible
+  fail:
+    msg: Unable to remove user with host because of mariadb_server__skip_name_resolve. Please disable this option and restart MariaDB
+  when: _mariadb_server__remove_empty_users is failed
+      and mariadb_server__skip_name_resolve|bool
+      and not mariadb_server__service_restartable|bool
+  tags: ['mariadb-server', 'mariadb-server-hardening']
+
+# Disable skip name resolve option to allow full edition of users
+
+- name: Disable skip-name-resolve option in server configuration
+  lineinfile:
+    path:   '{{ mariadb_server__server_configuration_file }}'
+    regexp: '^skip-name-resolve'
+    line:   '#skip-name-resolve'
+  when: _mariadb_server__remove_empty_users is failed
+      and mariadb_server__skip_name_resolve|bool
+      and mariadb_server__service_restartable|bool
+  tags: ['mariadb-server', 'mariadb-server-hardening']
+
+- name: Restart MariaDB after disabled skip name resolve
+  service:
+    name:  '{{ mariadb_server__service_name }}'
+    state: restarted
+  when: _mariadb_server__remove_empty_users is failed
+      and mariadb_server__skip_name_resolve|bool
+      and mariadb_server__service_restartable|bool
+  tags: ['mariadb-server', 'mariadb-server-hardening']
+
+# Hardening tasks
+
+- name: Remove empty users
+  mysql_user:
+    name:                 ''
+    host_all:             yes
+    login_unix_socket:    '{{ mariadb_server__socket_file }}'
+    login_user:           '{{ mariadb_server__root_login }}'
+    login_password:       '{{ mariadb_server__root_password }}'
+    check_implicit_admin: True
+    state:                absent
+  ignore_errors: True
+  register: _mariadb_server__remove_empty_users
+  tags: ['mariadb-server', 'mariadb-server-hardening']
+
+- name: Secure root user
+  mysql_user:
+    name:              '{{ mariadb_server__root_login }}'
+    password:          '{{ mariadb_server__root_password }}'
+    host_all:          yes
+    login_unix_socket: '{{ mariadb_server__socket_file }}'
+    login_user:        '{{ mariadb_server__root_login }}'
+    login_password:    '{{ mariadb_server__root_password }}'
+    check_implicit_admin: True
+    state:             present
+  when: mariadb_server__root_password is defined
+  tags: ['mariadb-server', 'mariadb-server-hardening']
+
+# End of hardening tasks
+
+- name: Disable skip-name-resolve option in server configuration
+  lineinfile:
+    path:   '{{ mariadb_server__server_configuration_file }}'
+    regexp: '^#skip-name-resolve'
+    line:   'skip-name-resolve'
+  when: _mariadb_server__remove_empty_users is failed
+      and mariadb_server__skip_name_resolve|bool
+      and mariadb_server__service_restartable|bool
+  tags: ['mariadb-server', 'mariadb-server-hardening']
+
+- name: Restart MariaDB after renabled skip name resolve
+  service:
+    name:  '{{ mariadb_server__service_name }}'
+    state: restarted
+  when: _mariadb_server__remove_empty_users is failed
+      and mariadb_server__skip_name_resolve|bool
+      and mariadb_server__service_restartable|bool
+  tags: ['mariadb-server', 'mariadb-server-hardening']

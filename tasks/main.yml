@@ -30,6 +30,10 @@
 - meta: flush_handlers
   tags: ['always']
 
+- include_tasks: hardening.yml
+  when: mariadb_server__service_enabled|bool
+  tags: ['mariadb-server', 'mariadb-server-hardening']
+
 - include_tasks: databases.yml
   when: mariadb_server__service_enabled|bool
   tags: ['mariadb-server', 'mariadb-server-databases']

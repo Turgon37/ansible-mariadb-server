@@ -36,7 +36,7 @@ mariadb_server__systemd_override_options_dir: '/etc/systemd/system/{{ mariadb_se
 
 # Prevent Mariadb to load other configuration file
 mariadb_server__service_options:
-  - '--defaults-file={{ mariadb_server__configuration_file }}'
+  - '--defaults-file={{ mariadb_server__main_configuration_file }}'
 
 # Service user configuration
 mariadb_server__user_runas: mysql
@@ -61,10 +61,12 @@ mariadb_server__databases: {}
 # Main configuration directory
 mariadb_server__configuration_dir: /etc/mysql
 # Main configuration file
-mariadb_server__configuration_file: '{{ mariadb_server__configuration_dir }}/my.cnf'
+mariadb_server__main_configuration_file: '{{ mariadb_server__configuration_dir }}/my.cnf'
 # Copy the configuration template to all theses place too
 mariadb_server__configuration_alternates_files:
   - '{{ mariadb_server__configuration_dir }}/mariadb.cnf'
+# File which contains server specific configurations
+mariadb_server__server_configuration_file: '{{ mariadb_server__configuration_dir }}/server.cnf'
 # Directory where to put included files
 mariadb_server__include_configuration_dir: '{{ mariadb_server__configuration_dir }}/conf.d'
 
@@ -89,6 +91,7 @@ mariadb_server__bind_port: 3306
 mariadb_server__skip_networking: False
 mariadb_server__socket_file: /var/lib/mysql/mysqld.sock
 mariadb_server__max_connections: 100
+mariadb_server__max_user_connections: 0
 
 mariadb_server__skip_name_resolve: True
 
@@ -118,6 +121,7 @@ mariadb_server__log_dir: /var/log/mysql
 mariadb_server__general_log: False
 mariadb_server__general_log_file: '{{ mariadb_server__log_dir }}/general/mysql.log'
 
+mariadb_server__log_warnings: 2
 mariadb_server__error_log_file: '{{ mariadb_server__log_dir }}/error/error.log'
 
 mariadb_server__slow_query_log: False
@@ -127,11 +131,35 @@ mariadb_server__long_query_time: 2
 
 # Binary log
 mariadb_server__binlog_dir: '{{ mariadb_server__log_dir }}/binlog'
+mariadb_server__expire_logs_days: 0
+mariadb_server__max_binlog_size: 1G
+mariadb_server__binlog_do_db: []
+mariadb_server__binlog_ignore_db: []
+
+# Aria log
+mariadb_server__aria_log_dir: '{{ mariadb_server__log_dir }}/arialog'
+mariadb_server__aria_log_purge_type: immediate
+mariadb_server__aria_log_file_size: 100M
+
+# InnoDB log
+mariadb_server__innodb_log_dir: '{{ mariadb_server__log_dir }}/redolog'
+
 
 
 ### REPLICATION SECTION
 # ---------------------------------------
 mariadb_server__replication_enabled: False
+# Set a random number in the available range
+mariadb_server__server_id: '{{ 4294967290|random(seed=inventory_hostname)+1 }}'
+
+mariadb_server__replicate_do_db: []
+mariadb_server__replicate_ignore_db: []
+mariadb_server__replicate_do_table: []
+mariadb_server__replicate_ignore_table: []
+
+mariadb_server__replicate_wild_do_table: []
+mariadb_server__replicate_wild_ignore_table: []
+
 
 
 mariadb_server__skip_external_locking: True
@@ -176,7 +204,9 @@ mariadb_server__tuning_parameters: '{{ mariadb_server__tuning_global_parameters
                                 | combine(mariadb_server__tuning_host_parameters) }}'
 
 
-
+### INNODB
+# ---------------------------------------
+mariadb_server__innodb_data_home_dir: '{{ mariadb_server__datadir }}'
 # This variable is intended to be used in Ansible’s global inventory.
 mariadb_server__innodb_global_parameters: {}
 
@@ -213,15 +243,15 @@ mariadb_server__clients_defaults_parameters:
   client:
     socket: '{{ mariadb_server__socket_file }}'
     port: '{{ mariadb_server__bind_port|int }}'
-    no-auto-rehash:
-    safe-updates:
-    show-warnings:
-    prompt: "{{ mariadb_server__clients_prompt|d('\"MariaDB > \"') }}"
     default-character-set: '{{ mariadb_server__character_set_server }}'
 #    ssl-cert: /etc/mysql/client-cert.pem
 #    ssl-key: /etc/mysql/client-key.pem
 #    ssl-verify-server-cert: on
-  mysql: {}
+  mysql:
+    no-auto-rehash:
+    prompt: "\"{{ mariadb_server__clients_prompt|d('MariaDB') }}> \""
+    safe-updates:
+    show-warnings:
   mysql_upgrade: {}
   mysqladmin: {}
   mysqlbinlog: {}

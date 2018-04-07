@@ -23,7 +23,9 @@ skip-networking
 bind-address    = {{ mariadb_server__bind_address|ipaddr }}
 port            = {{ mariadb_server__bind_port|int }}
 {% endif %}
-max_connections = {{ mariadb_server__max_connections|int }}
+max_connections       = {{ mariadb_server__max_connections|int }}
+max_user_connections  = {{ mariadb_server__max_connections|int }}
+
 {% if mariadb_server__skip_name_resolve %}
 skip-name-resolve
 {% endif %}
@@ -43,9 +45,72 @@ character-set-server      = {{ mariadb_server__character_set_server }}
 
 character_sets_dir        = {{ mariadb_server__character_sets_dir }}
 
-{% if mariadb_server__skip_external_locking %}
-skip-external-locking
+#
+# * Logging
+#
+general_log_file        = {{ mariadb_server__general_log_file }}
+general_log             = {{ mariadb_server__general_log|bool|ternary('1', '0') }}
+
+# Error log - should be very few entries.
+log_error               = {{ mariadb_server__error_log_file }}
+log_warnings            = {{ mariadb_server__log_warnings }}
+
+
+# Slow queries
+slow_query_log_file     = {{ mariadb_server__slow_query_log_file }}
+slow_query_log          = {{ mariadb_server__slow_query_log|bool|ternary('1', '0') }}
+long_query_time         = {{ mariadb_server__long_query_time|int }}
+log_queries_not_using_indexes
+
+# Binary logs
+log_bin                 = {{ mariadb_server__binlog_dir }}/binlog.log
+expire_logs_days        = {{ mariadb_server__expire_logs_days|int }}
+max_binlog_size         = {{ mariadb_server__max_binlog_size }}
+{% for db in mariadb_server__binlog_do_db %}
+binlog_do_db            = {{ db }}
+{% endfor %}
+{% for db in mariadb_server__binlog_ignore_db %}
+binlog_ignore_db        = {{ db }}
+{% endfor %}
+
+# Aria logs
+aria_log_dir_path       = {{ mariadb_server__aria_log_dir }}
+aria_log_file_size      = {{ mariadb_server__aria_log_file_size }}
+aria_log_purge_type     = {{ mariadb_server__aria_log_purge_type }}
+
+# Innodb logs
+innodb_log_group_home_dir = {{ mariadb_server__innodb_log_dir }}
+#innodb_log_file_size 
+
+#
+# * Replication
+#
+{% if mariadb_server__replication_enabled %}
+server-id               = {{ mariadb_server__server_id }}
+{% else %}
+server-id               = 0
 {% endif %}
+
+# Databases
+{% for db in mariadb_server__replicate_do_db %}
+replicate_do_db         = {{ db }}
+{% endfor %}
+{% for db in mariadb_server__replicate_ignore_db %}
+replicate_ignore_db      = {{ db }}
+{% endfor %}
+# Tables
+{% for table in mariadb_server__replicate_do_table %}
+replicate_do_table      = {{ table }}
+{% endfor %}
+{% for table in mariadb_server__replicate_ignore_table %}
+replicate_ignore_table      = {{ table }}
+{% endfor %}
+{% for pattern in mariadb_server__replicate_wild_do_table %}
+replicate_wild_do_table     = {{ pattern }}
+{% endfor %}
+{% for pattern in mariadb_server__replicate_wild_ignore_table %}
+replicate_wild_ignore_table = {{ pattern }}
+{% endfor %}
 
 #
 # * Performance schema
@@ -55,6 +120,9 @@ performance_schema = {{ mariadb_server__performance_schema|bool|ternary('ON', 'O
 #
 # * Fine Tuning
 #
+{% if mariadb_server__skip_external_locking %}
+skip-external-locking
+{% endif %}
 {% for key, value in mariadb_server__tuning_parameters|dictsort %}
 {{ key }}              = {{ value }}
 {% endfor %}
@@ -70,33 +138,9 @@ query_cache_type        = {{ mariadb_server__query_cache_type }}
 {% endif %}
 
 #
-# * Logging and Replication
-#
-general_log_file        = {{ mariadb_server__general_log_file }}
-general_log             = {{ mariadb_server__general_log|bool|ternary('1', '0') }}
-
-# Error log - should be very few entries.
-log_error               = {{ mariadb_server__error_log_file }}
-
-# Slow queries
-slow_query_log_file     = {{ mariadb_server__slow_query_log_file }}
-slow_query_log          = {{ mariadb_server__slow_query_log|bool|ternary('1', '0') }}
-long_query_time         = {{ mariadb_server__long_query_time|int }}
-log_queries_not_using_indexes
-
-# Binary logs
-log_bin                 = {{ mariadb_server__binlog_dir }}/binlog.log
-expire_logs_days        = 10
-max_binlog_size         = 100M
-#binlog_do_db           = include_database_name
-#binlog_ignore_db       = include_database_name
-
-# Replication
-server-id               = {{ 4294967290|random(seed=inventory_hostname)+1 }}
-
-#
 # * InnoDB
 #
+innodb_data_home_dir = {{ mariadb_server__innodb_data_home_dir }}
 {% for key, value in mariadb_server__innodb_parameters | dictsort %}
 {{ key }}               = {{ value }}
 {% endfor %}
