@@ -42,7 +42,7 @@
     state: restarted
   when: mariadb_server__service_enabled|bool and mariadb_server__service_restartable|bool and _mariadb_server__restart_file.stat.exists
 
-- name: Remove stamp file if docker daemon is disabled
+- name: Remove stamp file if mariadb daemon is disabled
   file:
     path:  '{{ mariadb_server__service_restart_stamp_file }}'
     state: absent
