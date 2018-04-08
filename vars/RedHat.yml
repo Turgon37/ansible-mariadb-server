@@ -6,10 +6,6 @@ mariadb_server__packages:
 mariadb_server__packages_names:
   - 'MariaDB-server-{{ mariadb_server__version }}*'
 
-mariadb_server__run_dir: /var/run/mysqld
-mariadb_server__pid_file: /var/run/mysqld.pid
-mariadb_server__socket_file: /var/run/mysqld.sock
-
 mariadb_server__configuration_dir: /etc/my.cnf.d
 mariadb_server__main_configuration_file: '/etc/my.cnf'
 

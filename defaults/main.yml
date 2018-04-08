@@ -25,10 +25,10 @@ mariadb_server__version: 10.2
 
 ### SERVICE CONFIGURATION
 # ---------------------------------------
-# The name of the systemd docker service
+# The name of the systemd mariadb service
 mariadb_server__service_name: mariadb
 
-# If true the docker service will be started and enabled
+# If true the mariadb service will be started and enabled
 mariadb_server__service_enabled: True
 
 # If this is set to true, ansible will automatically restart mariadb daemon on changes
@@ -39,6 +39,9 @@ mariadb_server__service_restart_stamp_file: '/var/local/mariadb-must-restart-sta
 
 # Path to systemd override directory
 mariadb_server__systemd_override_options_dir: '/etc/systemd/system/{{ mariadb_server__service_name }}.service.d/'
+
+# Place to save run files
+mariadb_server__run_dir: /var/run/mysqld
 
 # Prevent Mariadb to load other configuration file
 mariadb_server__service_options:
@@ -98,7 +101,7 @@ mariadb_server__initdb_insecure: True
 mariadb_server__bind_address: 0.0.0.0
 mariadb_server__bind_port: 3306
 mariadb_server__skip_networking: False
-mariadb_server__socket_file: /var/lib/mysql/mysqld.sock
+mariadb_server__socket_file: '{{ mariadb_server__run_dir }}/mysqld.sock'
 mariadb_server__max_connections: 100
 mariadb_server__max_user_connections: 0
 
@@ -107,7 +110,7 @@ mariadb_server__skip_name_resolve: True
 
 ### GENERAL SECTION
 # ---------------------------------------
-mariadb_server__pid_file: /var/lib/mysql/mysqld.pid
+mariadb_server__pid_file: '{{ mariadb_server__run_dir }}/mysqld.pid'
 mariadb_server__datadir: /var/lib/mysql
 mariadb_server__tmpdir: /tmp
 mariadb_server__basedir: /usr
@@ -119,6 +122,9 @@ mariadb_server__collation_server: utf8_general_ci
 mariadb_server__character_sets_dir: /usr/share/mysql/charsets/
 mariadb_server__character_set_filesystem: binary
 mariadb_server__character_set_server: utf8
+
+# Choose default store engine if not precised in create table
+mariadb_server__default_storage_engine: InnoDB
 
 
 ### LOG SECTION
