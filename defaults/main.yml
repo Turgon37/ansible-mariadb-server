@@ -73,8 +73,7 @@ mariadb_server__configuration_dir: /etc/mysql
 # Main configuration file
 mariadb_server__main_configuration_file: '{{ mariadb_server__configuration_dir }}/my.cnf'
 # Copy the configuration template to all theses place too
-mariadb_server__configuration_alternates_files:
-  - '{{ mariadb_server__configuration_dir }}/mariadb.cnf'
+mariadb_server__configuration_alternates_files: []
 # File which contains server specific configurations
 mariadb_server__server_configuration_file: '{{ mariadb_server__configuration_dir }}/server.cnf'
 # Directory where to put included files

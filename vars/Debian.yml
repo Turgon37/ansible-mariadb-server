@@ -14,5 +14,8 @@ mariadb_server__pid_file: /var/run/mysqld/mysqld.pid
 
 mariadb_server__socket_file: /var/run/mysqld/mysqld.sock
 
+mariadb_server__configuration_alternates_files:
+  - '{{ mariadb_server__configuration_dir }}/mariadb.cnf'
+
 mariadb_server__log_dir_group: adm
 mariadb_server__log_dir_mode: 2750

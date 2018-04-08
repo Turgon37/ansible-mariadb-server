@@ -14,10 +14,15 @@
     mode:  0644
   tags: ['mariadb-server', 'mariadb-server-install']
 
+- name: 'Install {{ zabbix_common__packages_name }} package'
+  yum:
+    name:  '{{ zabbix_common__packages_name }}-{{ zabbix_common__version }}*'
+    state: present
 - name: Install server package
   yum:
-    name:  '{{ item }}'
-    state: present
+    name:         '{{ item }}'
+    update_cache: yes
+    state:        present
   with_items: '{{ mariadb_server__packages_names }}'
   register: _mariadb_server__packages
   tags: ['mariadb-server', 'mariadb-server-install']
