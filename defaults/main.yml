@@ -4,6 +4,12 @@
 # Simple placeholder to allow other roles to detect this role
 mariadb_server__role: True
 
+# Enable fact deployment
+mariadb_server__facts: True
+
+# Choose the monitoring backend to configure (if available)
+#mariadb_server__monitoring:
+
 # List of package to remove
 mariadb_server__conflict_packages_names: []
 
@@ -54,6 +60,10 @@ mariadb_server__root_login: 'root'
 mariadb_server__users: []
 # List of database to create
 mariadb_server__databases: {}
+
+# Monitoring user credentials
+#mariadb_server__monitoring_username:
+#mariadb_server__monitoring_password:
 
 
 ### SERVER CONFIGURATION
@@ -143,7 +153,6 @@ mariadb_server__aria_log_file_size: 100M
 
 # InnoDB log
 mariadb_server__innodb_log_dir: '{{ mariadb_server__log_dir }}/redolog'
-
 
 
 ### REPLICATION SECTION

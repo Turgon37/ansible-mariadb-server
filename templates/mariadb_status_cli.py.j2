@@ -1,0 +1,112 @@
+#!/usr/bin/env python
+
+import argparse
+import hashlib
+import json
+import os
+import re
+import sys
+import time
+import _mysql
+import _mysql_exceptions
+
+
+# Return dict
+content=None
+
+mariadb_connect_options = {
+  'read_default_file': "{{ zabbix_agent__userparameters_conf_directory|d('/etc/zabbix/userparameters_config.d') }}/mariadb.cnf",
+  'read_default_group': "connector_python",
+}
+
+# number of second to cache a query result
+local_query_cache_life = 55
+# the path to the cache directory
+local_query_cache_path = '/tmp/zbx_mdb_sc_{}'.format(hashlib.md5(os.getenv('USER').encode()).hexdigest())
+local_query_cache_lock_path = local_query_cache_path+'.lock'
+
+
+def LockException(BaseException):
+    """Simple exception to handle locking related errors
+    """
+    pass
+
+def acquireLock(lockfile, max_tries=14):
+    """Try to acquire lock with a lockfile
+
+    @param str : the path to the lockfile
+    @param int : the maximal number of lock tries
+    @raise LockException on lock fail
+    """
+    tries = 0
+    # wait if lock is acquired
+    while os.path.isfile(lockfile):
+        tries += 1
+        if tries > max_tries:
+            raise LockException('unable to acquire lock')
+        time.sleep(0.1)
+    with open(lockfile, 'w') as f:
+        pass
+    return True
+
+def releaseLock(lockfile):
+    """Remove the lockfile
+
+    @param str : the path to the lockfile
+    """
+    if os.path.isfile(lockfile):
+        os.unlink(lockfile)
+    return True
+
+def getGlobalStatus(cache=True, verbose=False):
+    # generate cache
+    if (not cache or
+        not os.path.isfile(local_query_cache_path) or
+        time.time() - os.stat(local_query_cache_path).st_mtime > local_query_cache_life):
+        try:
+            conn = _mysql.connect(**mariadb_connect_options)
+            conn.query('SHOW GLOBAL STATUS')
+            result = conn.store_result()
+            stats = dict(result.fetch_row(maxrows=0))
+        except _mysql_exceptions.OperationalError as e:
+            if verbose:
+                sys.stderr.write(str(e))
+            return None
+
+        if not cache:
+            return stats
+        try:
+            acquireLock(local_query_cache_lock_path)
+            with open(local_query_cache_path, 'w') as f:
+                json.dump(stats, f)
+        except Exception as e:
+            raise e
+        finally:
+            releaseLock(local_query_cache_lock_path)
+    # use cache
+    else:
+        try:
+            acquireLock(local_query_cache_lock_path)
+            with open(local_query_cache_path, 'r') as f:
+                stats = json.load(f)
+        except Exception as e:
+            raise e
+        finally:
+            releaseLock(local_query_cache_lock_path)
+    return stats
+
+## RETRIEVE INFORMATIONS
+if __name__ == "__main__":
+    # Create parser
+    parser = argparse.ArgumentParser(description='Command line utility to query stats from mariadb daemon')
+    parser.add_argument('--no-cache', action='store_false', dest='use_cache', default=True,
+                                help='Disable caching of mariadb queries')
+    parser.add_argument('-v', '--verbose', action='store_true', dest='verbose', default=False,
+                                help='Enable output of errors')
+
+    args = parser.parse_args()
+
+    ## OUTPUT
+    content = getGlobalStatus(cache=args.use_cache, verbose=args.verbose)
+    print(json.dumps(content))
+    sys.exit(0)

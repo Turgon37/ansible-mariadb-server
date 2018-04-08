@@ -101,3 +101,10 @@
     validate: '{{ mariadb_server__configuration_validator }}'
   with_fileglob:
     - ../templates/conf.d/*.j2
+
+- name: Update debian maintenance credentials
+  replace:
+    path:   '{{ mariadb_server__configuration_dir }}/debian.cnf'
+    regexp: '^password ='
+    replace:   'password = "{{ mariadb_server__root_password }}"'
+  when: ansible_os_family == 'Debian' and mariadb_server__root_password is defined

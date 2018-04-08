@@ -41,3 +41,7 @@
 - include_tasks: users.yml
   when: mariadb_server__service_enabled|bool
   tags: ['mariadb-server', 'mariadb-server-users']
+
+- include_tasks: 'monitoring-{{ mariadb_server__monitoring }}.yml'
+  when: mariadb_server__monitoring is defined
+  tags: ['mariadb-server', 'mariadb-server-monitoring']
