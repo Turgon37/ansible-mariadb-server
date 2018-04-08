@@ -12,7 +12,7 @@
     state: stopped
   when: not _mariadb_server__initdb_check_file.stat.exists
 
-- name: Check if the data dir must be initialized
+- name: Initialize database data directory
   command: >
     {% if ansible_check_mode %} /usr/bin/env echo 'DATABASE MUST BE INITIALIZED WITH '{% endif %}
     mysql_install_db
