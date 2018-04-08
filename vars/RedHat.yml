@@ -4,9 +4,9 @@ mariadb_server__packages:
 # - MariaDB-client
 
 mariadb_server__packages_names:
-  - 'MariaDB-server-{{ mariadb_server__version }}'
+  - 'MariaDB-server-{{ mariadb_server__version }}*'
 
 mariadb_server__configuration_dir: /etc/my.cnf.d
 mariadb_server__main_configuration_file: '/etc/my.cnf'
 
-mariadb_server__include_configuration_dir: '{{ mariadb_server__configuration_dir }}'
+mariadb_server__configuration_validator: mysql --defaults-file=%s --help
