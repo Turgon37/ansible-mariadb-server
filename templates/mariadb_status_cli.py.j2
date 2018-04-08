@@ -22,7 +22,12 @@ mariadb_connect_options = {
 # number of second to cache a query result
 local_query_cache_life = 55
 # the path to the cache directory
-local_query_cache_path = '/tmp/zbx_mdb_sc_{}'.format(hashlib.md5(os.getenv('USER').encode()).hexdigest())
+# the path to the cache directory
+unique_key = str(os.getuid())
+for env in ['LOGNAME', 'USER', '']:
+    if os.getenv(env):
+        unique_key = os.getenv(env).encode()
+local_query_cache_path = '/tmp/zbx_mdb_sc_{}'.format(hashlib.md5(unique_key).hexdigest())
 local_query_cache_lock_path = local_query_cache_path+'.lock'
 
 
