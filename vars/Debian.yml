@@ -10,8 +10,8 @@ mariadb_server__repository_base_url: 'http://ftp.igh.cnrs.fr/pub/mariadb/repo/{{
 mariadb_server__packages_names:
   - 'mariadb-server-{{ mariadb_server__version }}'
 
+mariadb_server__run_dir: /var/run/mysqld
 mariadb_server__pid_file: /var/run/mysqld/mysqld.pid
-
 mariadb_server__socket_file: /var/run/mysqld/mysqld.sock
 
 mariadb_server__configuration_alternates_files:

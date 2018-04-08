@@ -7,3 +7,7 @@ Environment="MYSQLD_OPTS={{ mariadb_server__service_options|join(' ') }}"
 # Remove must restart stamp file
 ExecStartPre=-/usr/bin/env rm -f {{ mariadb_server__service_restart_stamp_file }}
 {% endif %}
+
+{% if mariadb_server__run_dir is defined %}
+ExecStartPre=mkdir -p {{ mariadb_server__run_dir }}; chown {{ mariadb_server__user_runas }} {{ mariadb_server__run_dir }}
+{% endif %}
