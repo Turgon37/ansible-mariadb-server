@@ -1,6 +1,6 @@
 ---
 
-- name: Add docker repository GPG key to apt keyring
+- name: Add MariaDB repository GPG key to apt keyring
   apt_key:
     id:        '{{ item.id }}'
     keyserver: '{{ item.keyserver }}'
