@@ -14,12 +14,35 @@
     name:              '{{ mariadb_server__monitoring_username }}'
     password:          '{{ mariadb_server__monitoring_password }}'
     host:              localhost
-    #priv:              ''
+    priv:              '*.*:PROCESS'
     login_unix_socket: '{{ mariadb_server__socket_file }}'
     login_user:        '{{ mariadb_server__root_login }}'
     login_password:    '{{ mariadb_server__root_password|d(omit) }}'
     state:             present
-  no_log: yes
+  no_log: no
+  tags: ['mariadb-server', 'mariadb-server-monitoring']
+
+- name: Get current max connections value for monitoring user
+  command: >
+    {{ mariadb_server__client_executable }}
+    {% if ansible_os_family == 'Debian' %}--defaults-file={{ mariadb_server__configuration_dir }}/debian.cnf
+    {% else %}--user={{ mariadb_server__root_login }} --password={{ mariadb_server__root_password }} --socket={{ mariadb_server__socket_file }}{% endif %}
+    --batch --skip-column-names
+    --execute="SELECT `max_user_connections` FROM `mysql`.`user` WHERE `user` = '{{ mariadb_server__monitoring_username }}' AND `host` = 'localhost'"
+  register: _mariadb_server__monitoring_max_connections
+  check_mode: False
+  changed_when: False
+  no_log: True
+  tags: ['mariadb-server', 'mariadb-server-monitoring']
+
+- name: Set current max connections value for monitoring user
+  command: >
+    {{ mariadb_server__client_executable }}
+    {% if ansible_os_family == 'Debian' %}--defaults-file={{ mariadb_server__configuration_dir }}/debian.cnf
+    {% else %}--user={{ mariadb_server__root_login }} --password={{ mariadb_server__root_password }} --socket={{ mariadb_server__socket_file }}{% endif %}
+    --batch --skip-column-names
+    --execute="UPDATE `mysql`.`user` SET `max_user_connections` = 1 WHERE `user` = '{{ mariadb_server__monitoring_username }}' AND `host` = 'localhost' LIMIT 1; FLUSH PRIVILEGES;"
+  when: _mariadb_server__monitoring_max_connections.stdout|int != 1
   tags: ['mariadb-server', 'mariadb-server-monitoring']
 
 - name: Install mariadb query cli file

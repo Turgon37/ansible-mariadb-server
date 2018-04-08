@@ -82,8 +82,11 @@ mariadb_server__server_configuration_file: '{{ mariadb_server__configuration_dir
 # Directory where to put included files
 mariadb_server__include_configuration_dir: '{{ mariadb_server__configuration_dir }}/conf.d'
 
+# Name of the mariadb client binary
+mariadb_server__client_executable: mariadb
+
 # Executable use to check configuration files
-mariadb_server__configuration_validator: mariadb --defaults-file=%s --help
+mariadb_server__configuration_validator: '{{ mariadb_server__client_executable }} --defaults-file=%s --help'
 
 
 ### DATABASE BOOTSTRAPING
