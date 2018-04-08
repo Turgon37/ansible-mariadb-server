@@ -2,6 +2,8 @@
 
 mariadb_server__required_packages_names:
   - dirmngr
+  - libterm-readkey-perl
+  - libdbd-mysql-perl
   - python-mysqldb
   - software-properties-common
 
