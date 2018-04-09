@@ -65,6 +65,7 @@ long_query_time         = {{ mariadb_server__long_query_time|int }}
 log_queries_not_using_indexes
 
 # Binary logs
+{% if mariadb_server__binlog_enabled|bool %}
 log_bin                 = {{ mariadb_server__binlog_dir }}/binlog.log
 expire_logs_days        = {{ mariadb_server__expire_logs_days|int }}
 max_binlog_size         = {{ mariadb_server__max_binlog_size }}
@@ -74,6 +75,9 @@ binlog_do_db            = {{ db }}
 {% for db in mariadb_server__binlog_ignore_db %}
 binlog_ignore_db        = {{ db }}
 {% endfor %}
+{% else %}
+# DISABLED
+{% endif %}
 
 # Aria logs
 aria_log_dir_path       = {{ mariadb_server__aria_log_dir }}

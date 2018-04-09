@@ -16,8 +16,6 @@
 
 - name: Reload systemd
   systemd:
-    name:          '{{ mariadb_server__service_name }}'
-    enabled:       yes
     daemon_reload: yes
   when: ansible_service_mgr == 'systemd' and _mariadb_server__service is changed
 

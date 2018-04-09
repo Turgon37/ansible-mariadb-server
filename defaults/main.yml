@@ -148,6 +148,7 @@ mariadb_server__slow_query_log_file: '{{ mariadb_server__log_dir }}/slow-query/m
 mariadb_server__long_query_time: 2
 
 # Binary log
+mariadb_server__binlog_enabled: False
 mariadb_server__binlog_dir: '{{ mariadb_server__log_dir }}/binlog'
 mariadb_server__expire_logs_days: 0
 mariadb_server__max_binlog_size: 1G
