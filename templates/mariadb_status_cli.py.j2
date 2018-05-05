@@ -16,7 +16,7 @@ content=None
 
 mariadb_connect_options = {
   'read_default_file': "{{ zabbix_agent__userparameters_conf_directory|d('/etc/zabbix/userparameters_config.d') }}/mariadb.cnf",
-  'read_default_group': "connector_python",
+  'read_default_group': 'connector_python',
 }
 
 # number of second to cache a query result
@@ -68,11 +68,12 @@ def getGlobalStatus(cache=True, verbose=False):
     if (not cache or
         not os.path.isfile(local_query_cache_path) or
         time.time() - os.stat(local_query_cache_path).st_mtime > local_query_cache_life):
+        stats = dict()
         try:
             conn = _mysql.connect(**mariadb_connect_options)
-            conn.query('SHOW GLOBAL STATUS')
-            result = conn.store_result()
-            stats = dict(result.fetch_row(maxrows=0))
+            conn.query('SHOW /*!50002 GLOBAL */ STATUS')
+            result_global = conn.store_result()
+            stats['GLOBAL'] = dict(result_global.fetch_row(maxrows=0))
         except _mysql_exceptions.OperationalError as e:
             if verbose:
                 sys.stderr.write(str(e))
