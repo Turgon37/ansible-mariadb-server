@@ -74,6 +74,20 @@ def getGlobalStatus(cache=True, verbose=False):
             conn.query('SHOW /*!50002 GLOBAL */ STATUS')
             result_global = conn.store_result()
             stats['GLOBAL'] = dict(result_global.fetch_row(maxrows=0))
+
+            conn.query('SHOW ENGINES')
+            result_engines = conn.store_result()
+            stats['ENGINES'] = [row[0] for row in result_engines.fetch_row(maxrows=0)]
+
+            if 'InnoDB' in stats['ENGINES']:
+                conn.query('SHOW ENGINE INNODB STATUS')
+                result_engine_innodb = conn.store_result()
+
+            if 'PERFORMANCE_SCHEMA' in stats['ENGINES']:
+                conn.query('SHOW ENGINE PERFORMANCE_SCHEMA STATUS')
+                result_engine_performance_schema = conn.store_result()
+                stats['PERFORMANCE_SCHEMA'] = dict(map(lambda it: (it[1], it[2]), result_engine_performance_schema.fetch_row(maxrows=0)))
+
         except _mysql_exceptions.OperationalError as e:
             if verbose:
                 sys.stderr.write(str(e))
