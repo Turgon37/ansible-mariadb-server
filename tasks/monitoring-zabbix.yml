@@ -14,7 +14,7 @@
     name:              '{{ mariadb_server__monitoring_username }}'
     password:          '{{ mariadb_server__monitoring_password }}'
     host:              localhost
-    priv:              '*.*:PROCESS'
+    priv:              '*.*:PROCESS,REPLICATION CLIENT'
     login_unix_socket: '{{ mariadb_server__socket_file }}'
     login_user:        '{{ mariadb_server__root_login }}'
     login_password:    '{{ mariadb_server__root_password|d(omit) }}'
@@ -69,8 +69,11 @@
           command: "mysqladmin --defaults-file={{ zabbix_agent__userparameters_conf_directory|d('/etc/zabbix/userparameters_config.d') }}/mariadb.cnf version | grep '^Server version' | awk '{ print $3 }'"
           comment: Return the current version of the server
         - key: mariadb.status
-          command: "{{ zabbix_agent__custom_scripts_directory|d('/opt/zabbix-agent-scripts') }}/mariadb_status_cli.py"
+          command: "{{ zabbix_agent__custom_scripts_directory|d('/opt/zabbix-agent-scripts') }}/mariadb_status_cli.py --type=status"
           comment: Get global status from mariadb server
+        - key: mariadb.variables
+          command: "{{ zabbix_agent__custom_scripts_directory|d('/opt/zabbix-agent-scripts') }}/mariadb_status_cli.py --type=variables"
+          comment: Get global variables from mariadb server
       state: present
   tags: ['mariadb-server', 'mariadb-server-monitoring']
 

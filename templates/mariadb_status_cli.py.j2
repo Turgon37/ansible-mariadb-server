@@ -20,15 +20,19 @@ mariadb_connect_options = {
 }
 
 # number of second to cache a query result
-local_query_cache_life = 55
+local_status_cache_life = 55
+local_variables_cache_life = 1800
 # the path to the cache directory
 # the path to the cache directory
 unique_key = str(os.getuid())
 for env in ['LOGNAME', 'USER', '']:
     if os.getenv(env):
         unique_key = os.getenv(env).encode()
-local_query_cache_path = '/tmp/zbx_mdb_sc_{}'.format(hashlib.md5(unique_key).hexdigest())
-local_query_cache_lock_path = local_query_cache_path+'.lock'
+local_status_cache_path = '/tmp/zbx_mdb_sc_{}'.format(hashlib.md5(unique_key).hexdigest())
+local_status_cache_lock_path = local_status_cache_path+'.lock'
+
+local_variables_cache_path = '/tmp/zbx_mdb_vc_{}'.format(hashlib.md5(unique_key).hexdigest())
+local_variables_cache_lock_path = local_variables_cache_path+'.lock'
 
 
 def LockException(BaseException):
@@ -66,9 +70,10 @@ def releaseLock(lockfile):
 def getGlobalStatus(cache=True, verbose=False):
     # generate cache
     if (not cache or
-        not os.path.isfile(local_query_cache_path) or
-        time.time() - os.stat(local_query_cache_path).st_mtime > local_query_cache_life):
+        not os.path.isfile(local_status_cache_path) or
+        time.time() - os.stat(local_status_cache_path).st_mtime > local_status_cache_life):
         stats = dict()
+        # query for standard items
         try:
             conn = _mysql.connect(**mariadb_connect_options)
             conn.query('SHOW /*!50002 GLOBAL */ STATUS')
@@ -93,32 +98,93 @@ def getGlobalStatus(cache=True, verbose=False):
                 sys.stderr.write(str(e))
             return None
 
+        # query for specific items
+        stats['BINLOGS'] = dict({
+          'files': 0,
+          'size': 0
+        })
+        try:
+            conn.query('SHOW BINARY LOGS')
+            result_binlogs = conn.store_result().fetch_row(maxrows=0)
+            stats['BINLOGS']['files'] = len(result_binlogs)
+            stats['BINLOGS']['size'] = reduce(lambda acc, x: acc+x[1], result_binlogs)
+        except _mysql_exceptions.OperationalError as e:
+            if verbose:
+                sys.stderr.write(str(e))
+            if e.args[0] != 1381:
+                return None
+
         if not cache:
             return stats
         try:
-            acquireLock(local_query_cache_lock_path)
-            with open(local_query_cache_path, 'w') as f:
+            acquireLock(local_status_cache_lock_path)
+            with open(local_status_cache_path, 'w') as f:
                 json.dump(stats, f)
         except Exception as e:
             raise e
         finally:
-            releaseLock(local_query_cache_lock_path)
+            releaseLock(local_status_cache_lock_path)
     # use cache
     else:
         try:
-            acquireLock(local_query_cache_lock_path)
-            with open(local_query_cache_path, 'r') as f:
+            acquireLock(local_status_cache_lock_path)
+            with open(local_status_cache_path, 'r') as f:
                 stats = json.load(f)
         except Exception as e:
             raise e
         finally:
-            releaseLock(local_query_cache_lock_path)
+            releaseLock(local_status_cache_lock_path)
     return stats
 
+
+def getGlobalVariables(cache=True, verbose=False):
+    # generate cache
+    if (not cache or
+        not os.path.isfile(local_variables_cache_path) or
+        time.time() - os.stat(local_variables_cache_path).st_mtime > local_variables_cache_life):
+        stats = dict()
+        try:
+            conn = _mysql.connect(**mariadb_connect_options)
+            conn.query('SHOW VARIABLES')
+            result_variables = conn.store_result()
+            stats = dict(result_variables.fetch_row(maxrows=0))
+
+        except _mysql_exceptions.OperationalError as e:
+            if verbose:
+                sys.stderr.write(str(e))
+            return None
+
+        if not cache:
+            return stats
+        try:
+            acquireLock(local_variables_cache_lock_path)
+            with open(local_variables_cache_path, 'w') as f:
+                json.dump(stats, f)
+        except Exception as e:
+            raise e
+        finally:
+            releaseLock(local_variables_cache_lock_path)
+    # use cache
+    else:
+        try:
+            acquireLock(local_variables_cache_lock_path)
+            with open(local_variables_cache_lock_path, 'r') as f:
+                stats = json.load(f)
+        except Exception as e:
+            raise e
+        finally:
+            releaseLock(local_variables_cache_lock_path)
+    return stats
+
+
+
+
 ## RETRIEVE INFORMATIONS
-if __name__ == "__main__":
+if __name__ == '__main__':
     # Create parser
     parser = argparse.ArgumentParser(description='Command line utility to query stats from mariadb daemon')
+    parser.add_argument('--type', action='store', dest='type', default='status', choices=['status', 'variables'],
+                                help='')
     parser.add_argument('--no-cache', action='store_false', dest='use_cache', default=True,
                                 help='Disable caching of mariadb queries')
     parser.add_argument('-v', '--verbose', action='store_true', dest='verbose', default=False,
@@ -127,6 +193,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     ## OUTPUT
-    content = getGlobalStatus(cache=args.use_cache, verbose=args.verbose)
+    content = None
+    if args.type == 'status':
+        content = getGlobalStatus(cache=args.use_cache, verbose=args.verbose)
+    elif args.type == 'variables':
+        content = getGlobalVariables(cache=args.use_cache, verbose=args.verbose)
     print(json.dumps(content))
     sys.exit(0)
