@@ -20,7 +20,7 @@ socket          = {{ mariadb_server__socket_file }}
 {% if mariadb_server__skip_networking|bool %}
 skip-networking
 {% else %}
-bind-address    = {{ mariadb_server__bind_address|ipaddr }}
+bind-address    = {{ mariadb_server__bind_address }}
 port            = {{ mariadb_server__bind_port|int }}
 {% endif %}
 max_connections       = {{ mariadb_server__max_connections|int }}
