@@ -15,5 +15,7 @@ mariadb_server__packages_names:
 mariadb_server__configuration_alternates_files:
   - '{{ mariadb_server__configuration_dir }}/mariadb.cnf'
 
+mariadb_server__client_executable: mysql
+
 mariadb_server__log_dir_group: adm
 mariadb_server__log_dir_mode: 2750
