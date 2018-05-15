@@ -12,7 +12,7 @@
     host_all:             yes
     login_unix_socket:    '{{ mariadb_server__socket_file }}'
     login_user:           '{{ mariadb_server__root_login }}'
-    login_password:       '{{ mariadb_server__root_password }}'
+    login_password:       '{{ mariadb_server__root_password|d(omit) }}'
     check_implicit_admin: True
     state:                absent
   ignore_errors: True
@@ -56,7 +56,7 @@
     host_all:             yes
     login_unix_socket:    '{{ mariadb_server__socket_file }}'
     login_user:           '{{ mariadb_server__root_login }}'
-    login_password:       '{{ mariadb_server__root_password }}'
+    login_password:       '{{ mariadb_server__root_password|d(omit) }}'
     check_implicit_admin: True
     state:                absent
   ignore_errors: True
