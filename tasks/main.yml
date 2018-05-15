@@ -45,3 +45,7 @@
 - include_tasks: 'monitoring-{{ mariadb_server__monitoring }}.yml'
   when: mariadb_server__monitoring is defined
   tags: ['mariadb-server', 'mariadb-server-monitoring']
+
+- include_tasks: facts.yml
+  when: mariadb_server__facts|bool
+  tags: ['mariadb-server', 'mariadb-server-facts']
