@@ -1,5 +1,5 @@
 ---
-mariadb_server__packages:
+mariadb_server__required_packages_names:
   - MySQL-python
 # - MariaDB-client
 
