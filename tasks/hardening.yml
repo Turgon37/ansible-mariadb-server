@@ -19,10 +19,25 @@
   register: _mariadb_server__remove_empty_users
   tags: ['mariadb-server', 'mariadb-server-hardening']
 
+- name: Secure root user
+  mysql_user:
+    name:              '{{ mariadb_server__root_login }}'
+    password:          '{{ mariadb_server__root_password }}'
+    host_all:          yes
+    login_unix_socket: '{{ mariadb_server__socket_file }}'
+    login_user:        '{{ mariadb_server__root_login }}'
+    login_password:    '{{ mariadb_server__root_password }}'
+    check_implicit_admin: True
+    state:             present
+  when: mariadb_server__root_password is defined
+  ignore_errors: True
+  register: _mariadb_server__secure_root_user
+  tags: ['mariadb-server', 'mariadb-server-hardening']
+
 - name: Fail if no action is possible
   fail:
-    msg: Unable to remove user with host because of mariadb_server__skip_name_resolve. Please disable this option and restart MariaDB
-  when: _mariadb_server__remove_empty_users is failed
+    msg: Unable to edit user with host set to a dns name because of mariadb_server__skip_name_resolve. Please disable this option and restart MariaDB
+  when: (_mariadb_server__remove_empty_users is failed or _mariadb_server__secure_root_user is failed)
       and mariadb_server__skip_name_resolve|bool
       and not mariadb_server__service_restartable|bool
   tags: ['mariadb-server', 'mariadb-server-hardening']
@@ -34,7 +49,7 @@
     path:   '{{ mariadb_server__server_configuration_file }}'
     regexp: '^skip-name-resolve'
     line:   '#skip-name-resolve'
-  when: _mariadb_server__remove_empty_users is failed
+  when: (_mariadb_server__remove_empty_users is failed or _mariadb_server__secure_root_user is failed)
       and mariadb_server__skip_name_resolve|bool
       and mariadb_server__service_restartable|bool
   tags: ['mariadb-server', 'mariadb-server-hardening']
@@ -43,7 +58,7 @@
   service:
     name:  '{{ mariadb_server__service_name }}'
     state: restarted
-  when: _mariadb_server__remove_empty_users is failed
+  when: (_mariadb_server__remove_empty_users is failed or _mariadb_server__secure_root_user is failed)
       and mariadb_server__skip_name_resolve|bool
       and mariadb_server__service_restartable|bool
   tags: ['mariadb-server', 'mariadb-server-hardening']
@@ -59,8 +74,6 @@
     login_password:       '{{ mariadb_server__root_password|d(omit) }}'
     check_implicit_admin: True
     state:                absent
-  ignore_errors: True
-  register: _mariadb_server__remove_empty_users
   tags: ['mariadb-server', 'mariadb-server-hardening']
 
 - name: Secure root user
@@ -78,12 +91,12 @@
 
 # End of hardening tasks
 
-- name: Disable skip-name-resolve option in server configuration
+- name: Enable skip-name-resolve option in server configuration
   lineinfile:
     path:   '{{ mariadb_server__server_configuration_file }}'
     regexp: '^#skip-name-resolve'
     line:   'skip-name-resolve'
-  when: _mariadb_server__remove_empty_users is failed
+  when: (_mariadb_server__remove_empty_users is failed or _mariadb_server__secure_root_user is failed)
       and mariadb_server__skip_name_resolve|bool
       and mariadb_server__service_restartable|bool
   tags: ['mariadb-server', 'mariadb-server-hardening']
@@ -92,7 +105,7 @@
   service:
     name:  '{{ mariadb_server__service_name }}'
     state: restarted
-  when: _mariadb_server__remove_empty_users is failed
+  when: (_mariadb_server__remove_empty_users is failed or _mariadb_server__secure_root_user is failed)
       and mariadb_server__skip_name_resolve|bool
       and mariadb_server__service_restartable|bool
   tags: ['mariadb-server', 'mariadb-server-hardening']
