@@ -1,3 +1,4 @@
+{%- import '_macros.j2' as macros with context -%}
 #
 # {{ ansible_managed }}
 #
@@ -16,22 +17,19 @@ tmpdir          = {{ mariadb_server__tmpdir }}
 #
 # * Network Settings
 #
-socket          = {{ mariadb_server__socket_file }}
-{% if mariadb_server__skip_networking|bool %}
-skip-networking
-{% else %}
-bind-address    = {{ mariadb_server__bind_address }}
-port            = {{ mariadb_server__bind_port|int }}
+socket                = {{ mariadb_server__socket_file }}
+skip-networking       = {{ macros.bool(mariadb_server__skip_networking) }}
+{% if not mariadb_server__skip_networking|bool %}
+bind-address          = {{ mariadb_server__bind_address }}
+port                  = {{ mariadb_server__bind_port|int }}
 {% endif %}
 max_connections       = {{ mariadb_server__max_connections|int }}
 max_user_connections  = {{ mariadb_server__max_connections|int }}
 
-{% if mariadb_server__skip_name_resolve %}
-skip-name-resolve
-{% endif %}
+skip-name-resolve     = {{ macros.bool(mariadb_server__skip_name_resolve) }}
 
-lc-messages-dir = {{ mariadb_server__lc_messages_dir }}
-lc_messages     = {{ mariadb_server__lc_messages }}
+lc-messages-dir       = {{ mariadb_server__lc_messages_dir }}
+lc_messages           = {{ mariadb_server__lc_messages }}
 
 #
 # * Character sets
@@ -51,18 +49,17 @@ default_storage_engine    = {{ mariadb_server__default_storage_engine }}
 # * Logging
 #
 general_log_file        = {{ mariadb_server__general_log_file }}
-general_log             = {{ mariadb_server__general_log|bool|ternary('1', '0') }}
+general_log             = {{ macros.bool(mariadb_server__general_log) }}
 
 # Error log - should be very few entries.
 log_error               = {{ mariadb_server__error_log_file }}
 log_warnings            = {{ mariadb_server__log_warnings }}
 
-
 # Slow queries
-slow_query_log_file     = {{ mariadb_server__slow_query_log_file }}
-slow_query_log          = {{ mariadb_server__slow_query_log|bool|ternary('1', '0') }}
-long_query_time         = {{ mariadb_server__long_query_time|int }}
-log_queries_not_using_indexes
+slow_query_log_file           = {{ mariadb_server__slow_query_log_file }}
+slow_query_log                = {{ macros.bool(mariadb_server__slow_query_log) }}
+long_query_time               = {{ mariadb_server__long_query_time|int }}
+log_queries_not_using_indexes = {{ macros.bool(mariadb_server__log_queries_not_using_indexes) }}
 
 # Binary logs
 {% if mariadb_server__binlog_enabled|bool %}
@@ -80,31 +77,31 @@ binlog_ignore_db        = {{ db }}
 {% endif %}
 
 # Aria logs
-aria_log_dir_path       = {{ mariadb_server__aria_log_dir }}
-aria_log_file_size      = {{ mariadb_server__aria_log_file_size }}
-aria_log_purge_type     = {{ mariadb_server__aria_log_purge_type }}
+aria_log_dir_path         = {{ mariadb_server__aria_log_dir }}
+aria_log_file_size        = {{ mariadb_server__aria_log_file_size }}
+aria_log_purge_type       = {{ mariadb_server__aria_log_purge_type }}
 
 # Innodb logs
 innodb_log_group_home_dir = {{ mariadb_server__innodb_log_dir }}
-#innodb_log_file_size 
+innodb_log_file_size      = {{ mariadb_server__innodb_log_file_size }}
 
 #
 # * Replication
 #
 {% if mariadb_server__replication_enabled %}
-server-id               = {{ mariadb_server__server_id }}
+server-id               = {{ mariadb_server__server_id|int }}
 {% else %}
 server-id               = 0
 {% endif %}
 
-# Databases
+# replicate databases
 {% for db in mariadb_server__replicate_do_db %}
 replicate_do_db         = {{ db }}
 {% endfor %}
 {% for db in mariadb_server__replicate_ignore_db %}
 replicate_ignore_db      = {{ db }}
 {% endfor %}
-# Tables
+# replicate tables
 {% for table in mariadb_server__replicate_do_table %}
 replicate_do_table      = {{ table }}
 {% endfor %}
@@ -121,42 +118,41 @@ replicate_wild_ignore_table = {{ pattern }}
 #
 # * Performance schema
 #
-performance_schema = {{ mariadb_server__performance_schema|bool|ternary('ON', 'OFF') }}
+performance_schema = {{ macros.bool(mariadb_server__performance_schema) }}
 
 #
-# * Fine Tuning
+# * Security
 #
-{% if mariadb_server__skip_external_locking %}
-skip-external-locking
-{% endif %}
-{% for key, value in mariadb_server__tuning_parameters|dictsort %}
-{{ key }}              = {{ value }}
-{% endfor %}
+secure_auth        = {{ macros.bool(mariadb_server__secure_auth) }}
+secure_file_priv   = {{ mariadb_server__secure_file_priv }}
+
+#
+# * INNODB SECTION
+#
+innodb_data_home_dir   = {{ mariadb_server__innodb_data_home_dir }}
+
+#
+# * MyISAM SECTION
+#
+skip-external-locking  = {{ macros.bool(mariadb_server__skip_external_locking) }}
 
 #
 # * Query Cache Configuration
 #
-query_cache_type        = {{ mariadb_server__query_cache_type }}
-{% if mariadb_server__query_cache_type not in ["0", "OFF"] %}
-{%   for key, value in mariadb_server__query_cache_parameters|dictsort %}
-{{ key }}               = {{ value }}
-{%   endfor %}
-{% endif %}
+query_cache_type           = {{ macros.stringOrBool(mariadb_server__query_cache_type) }}
+query_cache_strip_comments = {{ macros.bool(mariadb_server__query_cache_strip_comments) }}
+query_cache_size           = {{ mariadb_server__query_cache_size }}
+query_cache_limit          = {{ mariadb_server__query_cache_limit }}
 
 #
-# * InnoDB
+# * Fine Tuning
 #
-innodb_data_home_dir = {{ mariadb_server__innodb_data_home_dir }}
-{% for key, value in mariadb_server__innodb_parameters | dictsort %}
-{{ key }}               = {{ value }}
+{% set _padding = 40 %}
+{% for key, value in mariadb_server__tuning_parameters|dictsort %}
+{%   set _spaces = (_padding - key|length) if (_padding - key|length) > 0 else 1 %}
+{{ key }} {{ ' ' * _spaces }} = {{ value }}
 {% endfor %}
 
-#
-# * MyISAM
-#
-{% for key, value in mariadb_server__myisam_parameters | dictsort %}
-{{ key }}                = {{ value }}
-{% endfor %}
 
 #
 # * TLS

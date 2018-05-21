@@ -3,7 +3,7 @@
 - name: Assert required variables
   assert:
     that:
-      - mariadb_server__query_cache_type|string in ['0', 'OFF', '1', 'ON', '2', 'DEMAND']
+      - mariadb_server__query_cache_type in [True, False, 'DEMAND', 0, 1, 2]
       - mariadb_server__aria_log_purge_type|string in ['immediate', 'external', 'at_flush']
       - 0 <= mariadb_server__expire_logs_days and mariadb_server__expire_logs_days <= 99
       - 0 <= mariadb_server__log_warnings and mariadb_server__log_warnings <= 4294967295

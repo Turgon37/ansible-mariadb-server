@@ -100,15 +100,30 @@ mariadb_server__initdb_insecure: True
 
 ### NETWORK SECTION
 # ---------------------------------------
+
+# If set to True, the server does not listen for TCP/IP connections.
+# All interaction with the server by be through socket files (Unix) or named pipes.
+mariadb_server__skip_networking: False
+
 # Bind address for network
 mariadb_server__bind_address: 0.0.0.0
 mariadb_server__bind_port: 3306
-mariadb_server__skip_networking: False
+
 mariadb_server__socket_file: '{{ mariadb_server__run_dir }}/mysqld.sock'
+
+# The maximum number of simultaneous client connections
 mariadb_server__max_connections: 100
+
+# Maximum simultaneous connections permitted for each user account.
+# When set to 0, there is no per user limit.
+# The session variable defaults to the global max_user_connections variable, unless the user's specific MAX_USER_CONNECTIONS resource option is non-zero.
+# When both global variable and the user resource option are set, the user's MAX_USER_CONNECTIONS is used
 mariadb_server__max_user_connections: 0
 
-mariadb_server__skip_name_resolve: True
+# If set to True , only IP addresses are used for connections
+# Host names are not resolved.
+# All host values in the GRANT tables must be IP addresses (or localhost)
+mariadb_server__skip_name_resolve: False
 
 
 ### GENERAL SECTION
@@ -146,6 +161,7 @@ mariadb_server__slow_query_log: False
 mariadb_server__slow_query_log_file: '{{ mariadb_server__log_dir }}/slow-query/mysql-slow.log'
 
 mariadb_server__long_query_time: 2
+mariadb_server__log_queries_not_using_indexes: True
 
 # Binary log
 mariadb_server__binlog_enabled: False
@@ -162,6 +178,7 @@ mariadb_server__aria_log_file_size: 100M
 
 # InnoDB log
 mariadb_server__innodb_log_dir: '{{ mariadb_server__log_dir }}/redolog'
+mariadb_server__innodb_log_file_size: 48MB
 
 
 ### REPLICATION SECTION
@@ -179,33 +196,54 @@ mariadb_server__replicate_wild_do_table: []
 mariadb_server__replicate_wild_ignore_table: []
 
 
-
-mariadb_server__skip_external_locking: True
-
+### PERFORMANCE SCHEMA SECTION
+# ---------------------------------------
 mariadb_server__performance_schema: True
 
 
-# select mode for query cache
-mariadb_server__query_cache_type: '0'
+### SECURITY SECTION
+# ---------------------------------------
+# Connections will be blocked unless clients use the current password format.
+mariadb_server__secure_auth: True
 
-# Add query cache settings
-# This variable is intended to be used in Ansible’s global inventory.
-mariadb_server__query_cache_global_parameters: {}
-
-# This variable is intended to be used in a host inventory group of Ansible
-# (only one host group is supported).
-mariadb_server__query_cache_group_parameters: {}
-
-# This variable is intended to be used in the inventory of hosts.
-mariadb_server__query_cache_host_parameters: {}
-
-# Combine all customs parameters
-mariadb_server__query_cache_parameters: '{{ mariadb_server__query_cache_global_parameters
-                                | combine(mariadb_server__query_cache_group_parameters)
-                                | combine(mariadb_server__query_cache_host_parameters) }}'
+# LOAD DATA, SELECT ... INTO and LOAD FILE() will only work with files in the specified path.
+# If not set, the default, the statements will work with any files that can be accessed.
+mariadb_server__secure_file_priv:
 
 
+### INNODB SECTION
+# ---------------------------------------
+mariadb_server__innodb_data_home_dir: '{{ mariadb_server__datadir }}'
 
+
+### MyISAM SECTION
+# ---------------------------------------
+# If set, external locking for MyISAM tables is disabled. 
+mariadb_server__skip_external_locking: True
+
+
+### QUERY CACHE SECTION
+# ---------------------------------------
+# If set to 0, the query cache is disabled (although a buffer of query_cache_size bytes is still allocated)
+# If set to 1 all SELECT queries will be cached unless SQL_NO_CACHE is specified
+# If set to 2 (or DEMAND), only queries with the SQL CACHE clause will be cached
+mariadb_server__query_cache_type: False
+
+# If set to True the server will strip any comments from the query before searching to see if it exists in the query cache
+mariadb_server__query_cache_strip_comments: False
+
+# Size in bytes available to the query cache
+mariadb_server__query_cache_size: 1M
+
+# Size in bytes for which results larger than this are not stored in the query cache
+mariadb_server__query_cache_limit: 1M
+
+# Minimum size in bytes of the blocks allocated for query cache results
+mariadb_server__query_cache_min_res_unit: 4K
+
+
+### TUNING SECTION
+# ---------------------------------------
 # This variable is intended to be used in Ansible’s global inventory.
 mariadb_server__tuning_global_parameters: {}
 
@@ -220,39 +258,6 @@ mariadb_server__tuning_host_parameters: {}
 mariadb_server__tuning_parameters: '{{ mariadb_server__tuning_global_parameters
                                 | combine(mariadb_server__tuning_group_parameters)
                                 | combine(mariadb_server__tuning_host_parameters) }}'
-
-
-### INNODB
-# ---------------------------------------
-mariadb_server__innodb_data_home_dir: '{{ mariadb_server__datadir }}'
-# This variable is intended to be used in Ansible’s global inventory.
-mariadb_server__innodb_global_parameters: {}
-
-# This variable is intended to be used in a host inventory group of Ansible
-# (only one host group is supported).
-mariadb_server__innodb_group_parameters: {}
-
-# This variable is intended to be used in the inventory of hosts.
-mariadb_server__innodb_host_parameters: {}
-
-mariadb_server__innodb_parameters: '{{ mariadb_server__innodb_global_parameters
-                                | combine(mariadb_server__innodb_group_parameters)
-                                | combine(mariadb_server__innodb_host_parameters) }}'
-
-## MyISAM
-# This variable is intended to be used in Ansible’s global inventory.
-mariadb_server__myisam_global_parameters: {}
-
-# This variable is intended to be used in a host inventory group of Ansible
-# (only one host group is supported).
-mariadb_server__myisam_group_parameters: {}
-
-# This variable is intended to be used in the inventory of hosts.
-mariadb_server__myisam_host_parameters: {}
-
-mariadb_server__myisam_parameters: '{{ mariadb_server__myisam_global_parameters
-                                | combine(mariadb_server__myisam_group_parameters)
-                                | combine(mariadb_server__myisam_host_parameters) }}'
 
 
 ### CLIENTS CONFIGURATION SECTION
