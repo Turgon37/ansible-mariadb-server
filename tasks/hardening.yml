@@ -45,10 +45,10 @@
 # Disable skip name resolve option to allow full edition of users
 
 - name: Disable skip-name-resolve option in server configuration
-  lineinfile:
+  replace:
     path:   '{{ mariadb_server__server_configuration_file }}'
     regexp: '^skip-name-resolve'
-    line:   '#skip-name-resolve'
+    replace: '#skip-name-resolve'
   when: (_mariadb_server__remove_empty_users is failed or _mariadb_server__secure_root_user is failed)
       and mariadb_server__skip_name_resolve|bool
       and mariadb_server__service_restartable|bool
@@ -92,10 +92,10 @@
 # End of hardening tasks
 
 - name: Enable skip-name-resolve option in server configuration
-  lineinfile:
+  replace:
     path:   '{{ mariadb_server__server_configuration_file }}'
     regexp: '^#skip-name-resolve'
-    line:   'skip-name-resolve'
+    replace: 'skip-name-resolve'
   when: (_mariadb_server__remove_empty_users is failed or _mariadb_server__secure_root_user is failed)
       and mariadb_server__skip_name_resolve|bool
       and mariadb_server__service_restartable|bool

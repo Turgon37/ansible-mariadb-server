@@ -18,14 +18,4 @@
     login_password:    '{{ mariadb_server__root_password|d(omit) }}'
     state:             "{{ item.state|d('present') }}"
   with_items: '{{ mariadb_server__users }}'
-  register: _mariadb_server__users
-  ignore_errors: True
-  no_log: yes
-  tags: ['mariadb-server', 'mariadb-server-users']
-
-# Temporary because ansible do not hide password
-- name: Extract error message from users setup
-  fail:
-    msg: "{{ _mariadb_server__users.results|reject('success')|map(attribute='msg')|list|join(' ') }}"
-  when: _mariadb_server__users is failed
   tags: ['mariadb-server', 'mariadb-server-users']
