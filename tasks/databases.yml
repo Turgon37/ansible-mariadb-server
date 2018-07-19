@@ -1,18 +1,18 @@
 ---
 - name: Ensure MariaDB is running
   service:
-    name:  '{{ mariadb_server__service_name }}'
+    name: '{{ mariadb_server__service_name }}'
     state: started
   tags: ['mariadb-server', 'mariadb-server-databases']
 
 - name: Setup MariaDB databases
   mysql_db:
-    name:              '{{ item.key }}'
-    collation:         '{{ item.value.collation|d(mariadb_server__collation_server) }}'
-    encoding:          '{{ item.value.encoding|d(mariadb_server__character_set_server) }}'
+    name: '{{ item.key }}'
+    collation: '{{ item.value.collation|d(mariadb_server__collation_server) }}'
+    encoding: '{{ item.value.encoding|d(mariadb_server__character_set_server) }}'
     login_unix_socket: '{{ mariadb_server__socket_file }}'
-    login_user:        '{{ mariadb_server__root_login }}'
-    login_password:    '{{ mariadb_server__root_password|d(omit) }}'
-    state:             "{{ item.value.state|d('present') }}"
+    login_user: '{{ mariadb_server__root_login }}'
+    login_password: '{{ mariadb_server__root_password|d(omit) }}'
+    state: "{{ item.value.state|d('present') }}"
   with_dict: '{{ mariadb_server__databases }}'
   tags: ['mariadb-server', 'mariadb-server-databases']

@@ -2,20 +2,20 @@
 
 - name: Ensure MariaDB is running
   service:
-    name:  '{{ mariadb_server__service_name }}'
+    name: '{{ mariadb_server__service_name }}'
     state: started
   tags: ['mariadb-server', 'mariadb-server-users']
 
 - name: Setup MariaDB users
   mysql_user:
-    name:              '{{ item.user }}'
-    password:          '{{ item.password|d(omit) }}'
-    host:              '{{ item.host|d(omit) }}'
-    encrypted:         '{{ item.encrypted|d(omit) }}'
-    priv:              '{{ item.priv|d(omit) }}'
+    name: '{{ item.user }}'
+    password: '{{ item.password|d(omit) }}'
+    host: '{{ item.host|d(omit) }}'
+    encrypted: '{{ item.encrypted|d(omit) }}'
+    priv: '{{ item.priv|d(omit) }}'
     login_unix_socket: '{{ mariadb_server__socket_file }}'
-    login_user:        '{{ mariadb_server__root_login }}'
-    login_password:    '{{ mariadb_server__root_password|d(omit) }}'
-    state:             "{{ item.state|d('present') }}"
-  with_items: '{{ mariadb_server__users }}'
+    login_user: '{{ mariadb_server__root_login }}'
+    login_password: '{{ mariadb_server__root_password|d(omit) }}'
+    state: "{{ item.state|d('present') }}"
+  with_items: '{{ mariadb_server__users|list }}'
   tags: ['mariadb-server', 'mariadb-server-users']
