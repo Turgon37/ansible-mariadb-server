@@ -1,4 +1,4 @@
-# {{ ansible_managed }}
+{{ ansible_managed|comment(decoration='# ') }}
 
 [Service]
 Environment="MYSQLD_OPTS={{ mariadb_server__service_options|join(' ') }}"

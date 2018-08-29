@@ -87,7 +87,7 @@
 
 - name: Remove unknown configuration files
   file:
-    path: '{{ item.path }}'
+    path: '{{ item }}'
     state: absent
   with_items: "{{ _mariadb_server__installed_config_files.files|map(attribute='path')|list }}"
   when: item|basename not in _mariadb_server__template_config_files
@@ -103,6 +103,23 @@
     validate: '{{ mariadb_server__configuration_validator }}'
   with_fileglob:
     - ../templates/conf.d/*.j2
+
+- name: Install root credential cnf
+  include_tasks: types/credential_cnf.yml
+  vars:
+    mariadb_server__credential_cnf:
+      path: /root/.my.cnf
+      groups:
+        - group:
+            - mysql
+            - client
+            - mysqldump
+            - mysqladmin
+            - mysqlcheck
+          host: localhost
+          user: '{{ mariadb_server__root_login }}'
+          password: '{{ mariadb_server__root_password|d(omit) }}'
+          socket: '{{ mariadb_server__socket_file }}'
 
 - name: Update debian maintenance credentials
   replace:
