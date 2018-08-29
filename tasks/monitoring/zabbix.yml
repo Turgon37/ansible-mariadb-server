@@ -2,42 +2,44 @@
 
 - name: Create custom scripts directory
   file:
-    path:  "{{ zabbix_agent__custom_scripts_directory|d('/opt/zabbix-agent-scripts') }}"
+    path: "{{ zabbix_agent__custom_scripts_directory|d('/opt/zabbix-agent-scripts') }}"
     owner: root
     group: root
-    mode:  0755
+    mode: 0755
     state: directory
   tags: ['mariadb-server', 'mariadb-server-monitoring']
 
 - name: Setup monitoring MariaDB user
   mysql_user:
-    name:              '{{ mariadb_server__monitoring_username }}'
-    password:          '{{ mariadb_server__monitoring_password }}'
-    host:              localhost
-    priv:              '*.*:PROCESS,REPLICATION CLIENT'
+    name: '{{ mariadb_server__monitoring_username }}'
+    password: '{{ mariadb_server__monitoring_password }}'
+    host: localhost
+    priv: '*.*:PROCESS,REPLICATION CLIENT'
     login_unix_socket: '{{ mariadb_server__socket_file }}'
-    login_user:        '{{ mariadb_server__root_login }}'
-    login_password:    '{{ mariadb_server__root_password|d(omit) }}'
-    state:             present
+    login_user: '{{ mariadb_server__root_login }}'
+    login_password: '{{ mariadb_server__root_password|d(omit) }}'
+    state: present
   tags: ['mariadb-server', 'mariadb-server-monitoring']
 
 - name: Get current max connections value for monitoring user
   command: >
     {{ mariadb_server__client_executable }}
-    {% if ansible_os_family == 'Debian' %}--defaults-file={{ mariadb_server__configuration_dir }}/debian.cnf
-    {% else %}--user={{ mariadb_server__root_login }}{% if mariadb_server__root_password is defined %} --password={{ mariadb_server__root_password }}{% endif %} --socket={{ mariadb_server__socket_file }}{% endif %}
+    --user={{ mariadb_server__root_login }}
+    {% if mariadb_server__root_password is defined %} --password={{ mariadb_server__root_password }}{% endif %}
+    --socket={{ mariadb_server__socket_file }}
     --batch --skip-column-names
     --execute="SELECT `max_user_connections` FROM `mysql`.`user` WHERE `user` = '{{ mariadb_server__monitoring_username }}' AND `host` = 'localhost'"
   register: _mariadb_server__monitoring_max_connections
-  check_mode: False
-  changed_when: False
+  check_mode: false
+  changed_when: false
   tags: ['mariadb-server', 'mariadb-server-monitoring']
 
 - name: Set current max connections value for monitoring user
   command: >
     {{ mariadb_server__client_executable }}
-    {% if ansible_os_family == 'Debian' %}--defaults-file={{ mariadb_server__configuration_dir }}/debian.cnf
-    {% else %}--user={{ mariadb_server__root_login }}{% if mariadb_server__root_password is defined %} --password={{ mariadb_server__root_password }}{% endif %} --socket={{ mariadb_server__socket_file }}{% endif %}
+    --user={{ mariadb_server__root_login }}
+    {% if mariadb_server__root_password is defined %} --password={{ mariadb_server__root_password }}{% endif %}
+    --socket={{ mariadb_server__socket_file }}
     --batch --skip-column-names
     --execute="UPDATE `mysql`.`user` SET `max_user_connections` = 1 WHERE `user` = '{{ mariadb_server__monitoring_username }}' AND `host` = 'localhost' LIMIT 1; FLUSH PRIVILEGES;"
   when: _mariadb_server__monitoring_max_connections.stdout|int != 1
@@ -45,16 +47,16 @@
 
 - name: Install mariadb query cli file
   template:
-    src:   mariadb_status_cli.py.j2
-    dest:  "{{ zabbix_agent__custom_scripts_directory|d('/opt/zabbix-agent-scripts') }}/mariadb_status_cli.py"
+    src: mariadb_status_cli.py.j2
+    dest: "{{ zabbix_agent__custom_scripts_directory|d('/opt/zabbix-agent-scripts') }}/mariadb_status_cli.py"
     owner: root
     group: root
-    mode:  0755
+    mode: 0755
   tags: ['mariadb-server', 'mariadb-server-monitoring']
 
 - name: Install monitoring credentials
   copy:
-    dest:   "{{ zabbix_agent__userparameters_conf_directory|d('/etc/zabbix/userparameters_config.d') }}/mariadb.cnf"
+    dest: "{{ zabbix_agent__userparameters_conf_directory|d('/etc/zabbix/userparameters_config.d') }}/mariadb.cnf"
     content: |
       {% for section in ['mysqladmin', 'connector_python'] %}
       [{{section}}]

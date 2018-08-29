@@ -2,40 +2,62 @@
 
 - name: Add MariaDB repository GPG key to apt keyring
   apt_key:
-    id:        '{{ item.id }}'
+    id: '{{ item.id }}'
     keyserver: '{{ item.keyserver }}'
-    state:     "{{ item.state|d('present') }}"
-  with_items: '{{ mariadb_server__gpg_keys[ansible_lsb.id] if (ansible_lsb.id is defined and ansible_lsb.id in mariadb_server__gpg_keys) else (
-                    mariadb_server__gpg_keys[ansible_distribution] if (ansible_distribution is defined and ansible_distribution in mariadb_server__gpg_keys) else (
-                      mariadb_server__gpg_keys[ansible_os_family] if (ansible_os_family in mariadb_server__gpg_keys) else ([])
-                    )
-              ) }}'
+    state: "{{ item.state|d('present') }}"
+  with_items: '{{
+    mariadb_server__gpg_keys[ansible_lsb.id]
+    if (ansible_lsb.id is defined and ansible_lsb.id in mariadb_server__gpg_keys)
+    else (
+      mariadb_server__gpg_keys[ansible_distribution]
+      if (ansible_distribution is defined and ansible_distribution in mariadb_server__gpg_keys)
+      else (
+        mariadb_server__gpg_keys[ansible_os_family]
+        if (ansible_os_family in mariadb_server__gpg_keys)
+        else ([])
+      )
+    ) }}'
   register: _mariadb_server__apt_key
   ignore_errors: '{{ http_proxy is defined }}'
   tags: ['mariadb-server', 'mariadb-server-install']
 
 - name: Add repository APT key using http proxy
-  command: apt-key adv --keyserver-options "http-proxy={{ http_proxy }}" --keyserver '{{ item.keyserver }}' --recv-keys '{{ item.id }}'
-  with_items: '{{ mariadb_server__gpg_keys[ansible_lsb.id] if (ansible_lsb.id is defined and ansible_lsb.id in mariadb_server__gpg_keys) else (
-                    mariadb_server__gpg_keys[ansible_distribution] if (ansible_distribution is defined and ansible_distribution in mariadb_server__gpg_keys) else (
-                      mariadb_server__gpg_keys[ansible_os_family] if (ansible_os_family in mariadb_server__gpg_keys) else ([])
-                    )
-                  ) }}'
+  command: >
+    apt-key adv
+    --keyserver-options "http-proxy={{ http_proxy }}"
+    --keyserver '{{ item.keyserver }}' --recv-keys '{{ item.id }}'
+  with_items: '{{
+    mariadb_server__gpg_keys[ansible_lsb.id]
+    if (ansible_lsb.id is defined and ansible_lsb.id in mariadb_server__gpg_keys)
+    else (
+      mariadb_server__gpg_keys[ansible_distribution]
+      if (ansible_distribution is defined and ansible_distribution in mariadb_server__gpg_keys)
+      else (
+        mariadb_server__gpg_keys[ansible_os_family]
+        if (ansible_os_family in mariadb_server__gpg_keys)
+        else ([])
+      )
+    ) }}'
   when: _mariadb_server__apt_key is failed and http_proxy is defined
   tags: ['mariadb-server', 'mariadb-server-install']
 
 - name: Add APT repository
   apt_repository:
     filename: mariadb
-    repo:     'deb [arch=amd64,i386,ppc64el] {{ mariadb_server__repository_base_url }} {{ ansible_distribution_release|lower }} main'
-    state:    present
+    repo: >-
+      deb
+      [arch=amd64,i386,ppc64el]
+      {{ mariadb_server__repository_base_url }}
+      {{ ansible_distribution_release|lower }}
+      main
+    state: present
   tags: ['mariadb-server', 'mariadb-server-install']
 
 - name: Install server packages
   apt:
-    name:         '{{ item }}'
-    update_cache: True
-    state:        present
-  with_items: '{{ mariadb_server__packages_names }}'
+    name: '{{ item }}'
+    update_cache: true
+    state: present
+  with_items: '{{ mariadb_server__packages_names|list }}'
   register: _mariadb_server__packages
   tags: ['mariadb-server', 'mariadb-server-install']

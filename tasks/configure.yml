@@ -1,40 +1,40 @@
 ---
 
-- name: "Ensure service group '{{ mariadb_server__group_runas }}' is present"
+- name: "Ensure service group '{{ mariadb_server__service_group }}' is present"
   group:
-    name:   '{{ mariadb_server__group_runas }}'
-    system: yes
-    state:  present
-  notify: [ 'restart-mariadb-server' ]
+    name: '{{ mariadb_server__service_group }}'
+    system: true
+    state: present
+  notify: ['restart-mariadb-server']
 
-- name: "Ensure service user '{{ mariadb_server__user_runas }}' is present"
+- name: "Ensure service user '{{ mariadb_server__service_user }}' is present"
   user:
-    name:       '{{ mariadb_server__user_runas }}'
-    group:      '{{ mariadb_server__group_runas }}'
-    shell:      /bin/false
-    home:       /nonexistent
-    createhome: no
-    system:     yes
-    state:      present
-  notify: [ 'restart-mariadb-server' ]
+    name: '{{ mariadb_server__service_user }}'
+    group: '{{ mariadb_server__service_group }}'
+    shell: /bin/false
+    home: /nonexistent
+    createhome: false
+    system: true
+    state: present
+  notify: ['restart-mariadb-server']
 
 - name: Ensure configuration directories exists
   file:
-    path:  '{{ item }}'
+    path: '{{ item }}'
     owner: root
     group: root
-    mode:  0755
+    mode: 0755
     state: directory
   with_items:
-    - '{{ mariadb_server__configuration_dir }}'
-    - '{{ mariadb_server__include_configuration_dir }}'
+    - '{{ mariadb_server__configuration_directory }}'
+    - '{{ mariadb_server__include_configuration_directory }}'
 
 - name: Ensure working data directory exists
   file:
-    name:  '{{ item }}'
-    owner: '{{ mariadb_server__user_runas }}'
-    group: '{{ mariadb_server__group_runas }}'
-    mode:  0750
+    name: '{{ item }}'
+    owner: '{{ mariadb_server__service_user }}'
+    group: '{{ mariadb_server__service_group }}'
+    mode: 0750
     state: directory
   with_items:
     - '{{ mariadb_server__datadir }}'
@@ -49,11 +49,11 @@
 
 - name: Create MariaDB main configuration
   template:
-    src:      my.cnf.j2
-    dest:     '{{ item }}'
-    owner:    root
-    group:    root
-    mode:     0644
+    src: my.cnf.j2
+    dest: '{{ item }}'
+    owner: root
+    group: root
+    mode: 0644
     validate: '{{ mariadb_server__configuration_validator }}'
   with_items:
     - '{{ mariadb_server__main_configuration_file }}'
@@ -62,49 +62,51 @@
 
 - name: Create MariaDB server configuration
   template:
-    src:      server.cnf.j2
-    dest:     '{{ mariadb_server__server_configuration_file }}'
-    owner:    root
-    group:    root
-    mode:     0644
+    src: server.cnf.j2
+    dest: '{{ mariadb_server__server_configuration_file }}'
+    owner: root
+    group: root
+    mode: 0644
     validate: '{{ mariadb_server__configuration_validator }}'
   notify: ['restart-mariadb-server']
 
 - name: List installed configuration files
   find:
-    paths:     '{{ mariadb_server__include_configuration_dir }}'
+    paths: '{{ mariadb_server__include_configuration_directory }}'
     file_type: file
   register: _mariadb_server__installed_config_files
-  check_mode: no
 
 - name: List defined templates files
   set_fact:
-    _mariadb_server__template_config_files: "{{ _mariadb_server__template_config_files|d([])|union([ item|basename|replace('.j2', '') ]) }}"
+    _mariadb_server__template_config_files: "{{
+      _mariadb_server__template_config_files
+      |d([])
+      |union([ item|basename|replace('.j2', '') ]) }}"
   with_fileglob:
     - ../templates/conf.d/*.j2
 
 - name: Remove unknown configuration files
   file:
-    path:  '{{ item.path }}'
+    path: '{{ item.path }}'
     state: absent
-  with_items: '{{ _mariadb_server__installed_config_files.files }}'
-  when: item.path|basename not in _mariadb_server__template_config_files
+  with_items: "{{ _mariadb_server__installed_config_files.files|map(attribute='path')|list }}"
+  when: item|basename not in _mariadb_server__template_config_files
   notify: ['restart-mariadb-server']
 
 - name: Create MariaDB configuration files
   template:
-    src:      '{{ item }}'
-    dest:     "{{ mariadb_server__include_configuration_dir }}/{{ item|basename|replace('.j2', '') }}"
-    owner:    root
-    group:    root
-    mode:     0644
+    src: '{{ item }}'
+    dest: "{{ mariadb_server__include_configuration_directory }}/{{ item|basename|replace('.j2', '') }}"
+    owner: root
+    group: root
+    mode: 0644
     validate: '{{ mariadb_server__configuration_validator }}'
   with_fileglob:
     - ../templates/conf.d/*.j2
 
 - name: Update debian maintenance credentials
   replace:
-    path:   '{{ mariadb_server__configuration_dir }}/debian.cnf'
+    path: '{{ mariadb_server__configuration_directory }}/debian.cnf'
     regexp: '^password =.*$'
-    replace:   'password = "{{ mariadb_server__root_password }}"'
+    replace: 'password = "{{ mariadb_server__root_password }}"'
   when: ansible_os_family == 'Debian' and mariadb_server__root_password is defined

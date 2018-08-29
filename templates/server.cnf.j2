@@ -8,7 +8,7 @@
 #
 # * Basic Settings
 #
-user            = {{ mariadb_server__user_runas }}
+user            = {{ mariadb_server__service_user }}
 pid-file        = {{ mariadb_server__pid_file }}
 basedir         = {{ mariadb_server__basedir }}
 datadir         = {{ mariadb_server__datadir }}

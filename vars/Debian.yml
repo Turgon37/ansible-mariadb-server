@@ -13,7 +13,7 @@ mariadb_server__packages_names:
   - 'mariadb-server-{{ mariadb_server__version }}'
 
 mariadb_server__configuration_alternates_files:
-  - '{{ mariadb_server__configuration_dir }}/mariadb.cnf'
+  - '{{ mariadb_server__configuration_directory }}/mariadb.cnf'
 
 mariadb_server__client_executable: mysql
 

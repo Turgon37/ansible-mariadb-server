@@ -8,7 +8,7 @@ Environment="MYSQLD_OPTS={{ mariadb_server__service_options|join(' ') }}"
 ExecStartPre=-/usr/bin/env rm -f {{ mariadb_server__service_restart_stamp_file }}
 {% endif %}
 
-{% if mariadb_server__run_dir is defined %}
+{% if mariadb_server__run_directory is defined %}
 # Ensure run dir
-ExecStartPre=/usr/bin/env install --directory {{ mariadb_server__run_dir }} --owner {{ mariadb_server__user_runas }} --group root --mode 755
+ExecStartPre=/usr/bin/env install --directory {{ mariadb_server__run_directory }} --owner {{ mariadb_server__service_user }} --group root --mode 755
 {% endif %}

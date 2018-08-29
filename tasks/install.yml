@@ -2,15 +2,15 @@
 
 - name: Remove conflicting packages
   package:
-    name:  '{{ item }}'
+    name: '{{ item }}'
     state: absent
-  with_items: '{{ mariadb_server__conflict_packages_names }}'
+  with_items: '{{ mariadb_server__conflict_packages_names|list }}'
 
 - name: Install required packages
   package:
-    name:  '{{ item }}'
+    name: '{{ item }}'
     state: present
-  with_items: '{{ mariadb_server__required_packages_names }}'
+  with_items: '{{ mariadb_server__required_packages_names|list }}'
 
 - include_tasks: '{{ file_item }}'
   with_first_found:
@@ -32,6 +32,7 @@
 
 - name: Stop the database to allow full configuration
   service:
-    name:  '{{ mariadb_server__service_name }}'
+    name: '{{ mariadb_server__service_name }}'
     state: stopped
-  when: _mariadb_server__packages is defined and _mariadb_server__packages is changed
+  when: _mariadb_server__packages is defined
+    and _mariadb_server__packages is changed
