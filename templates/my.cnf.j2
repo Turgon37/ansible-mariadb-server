@@ -1,6 +1,4 @@
-#
-# {{ ansible_managed }}
-#
+{{ ansible_managed|comment(decoration='# ') }}
 
 #
 # This group is read both both by the client and the server
@@ -12,4 +10,4 @@
 # include all files from the config directory
 #
 !include {{ mariadb_server__server_configuration_file }}
-!includedir {{ mariadb_server__include_configuration_dir }}
+!includedir {{ mariadb_server__include_configuration_directory }}

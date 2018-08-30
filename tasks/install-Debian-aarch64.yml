@@ -9,8 +9,8 @@
 
 - name: Install server package
   apt:
-    name:  '{{ item }}'
+    name: '{{ item }}'
     state: present
-  with_items: '{{ mariadb_server__packages_names }}'
+  with_items: '{{ mariadb_server__packages_names|list }}'
   register: _mariadb_server__packages
   tags: ['mariadb-server', 'mariadb-server-install']

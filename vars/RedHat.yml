@@ -1,4 +1,5 @@
 ---
+
 mariadb_server__required_packages_names:
   - MySQL-python
 # - MariaDB-client
@@ -6,7 +7,7 @@ mariadb_server__required_packages_names:
 mariadb_server__packages_names:
   - 'MariaDB-server-{{ mariadb_server__version }}*'
 
-mariadb_server__configuration_dir: /etc/my.cnf.d
-mariadb_server__main_configuration_file: '/etc/my.cnf'
+mariadb_server__configuration_directory: /etc/my.cnf.d
+mariadb_server__main_configuration_file: /etc/my.cnf
 
 mariadb_server__client_executable: mysql

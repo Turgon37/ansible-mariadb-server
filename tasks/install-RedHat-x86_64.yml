@@ -7,18 +7,18 @@
 
 - name: Add MariaDB repo from template
   template:
-    src:   mariadb_centos.repo.j2
-    dest:  /etc/yum.repos.d/MariaDB.repo
+    src: mariadb_centos.repo.j2
+    dest: /etc/yum.repos.d/MariaDB.repo
     owner: root
     group: root
-    mode:  0644
+    mode: 0644
   tags: ['mariadb-server', 'mariadb-server-install']
 
 - name: Install server package
   yum:
-    name:         '{{ item }}'
-    update_cache: yes
-    state:        present
-  with_items: '{{ mariadb_server__packages_names }}'
+    name: '{{ item }}'
+    update_cache: true
+    state: present
+  with_items: '{{ mariadb_server__packages_names|list }}'
   register: _mariadb_server__packages
   tags: ['mariadb-server', 'mariadb-server-install']

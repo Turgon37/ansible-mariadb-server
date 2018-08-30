@@ -12,19 +12,24 @@
       skip: true
   tags: ['always']
 
-- import_tasks: init.yml
+- name: Importing initialization tasks
+  import_tasks: init.yml
   tags: ['always']
 
-- import_tasks: install.yml
+- name: Importing install tasks
+  import_tasks: install.yml
   tags: ['mariadb-server', 'mariadb-server-install']
 
-- import_tasks: configure.yml
+- name: Importing configuration tasks
+  import_tasks: configure.yml
   tags: ['mariadb-server', 'mariadb-server-configure']
 
-- import_tasks: initdb.yml
+- name: Importing database initializing tasks
+  import_tasks: initdb.yml
   tags: ['mariadb-server', 'mariadb-server-initdb']
 
-- import_tasks: service.yml
+- name: Importing service tasks
+  import_tasks: service.yml
   tags: ['mariadb-server', 'mariadb-server-service']
 
 - meta: flush_handlers
@@ -42,10 +47,12 @@
   when: mariadb_server__service_enabled|bool
   tags: ['mariadb-server', 'mariadb-server-users']
 
-- include_tasks: 'monitoring/{{ mariadb_server__monitoring }}.yml'
+- name: Optionally importing monitoring tasks
+  include_tasks: 'monitoring/{{ mariadb_server__monitoring }}.yml'
   when: mariadb_server__monitoring is defined
   tags: ['mariadb-server', 'mariadb-server-monitoring']
 
-- include_tasks: facts.yml
+- name: Optionally importing facts tasks
+  include_tasks: facts.yml
   when: mariadb_server__facts|bool
   tags: ['mariadb-server', 'mariadb-server-facts']

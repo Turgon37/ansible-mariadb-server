@@ -1,23 +1,23 @@
 ---
 # defaults file for mariadb-server
 
-# Simple placeholder to allow other roles to detect this role
-mariadb_server__role: True
-
 # Enable fact deployment
-mariadb_server__facts: True
+mariadb_server__facts: true
 
 # Choose the monitoring backend to configure (if available)
-#mariadb_server__monitoring:
+# mariadb_server__monitoring:
 
-# List of package to remove
+
+### INSTALL CONFIGURATION
+# ---------------------------------------
+# List of packages to remove
 mariadb_server__conflict_packages_names: []
 
 # List of packages required for Mariadb to install
 mariadb_server__required_packages_names: []
 
 # Base url for repostories
-#mariadb_server__repository_base_url:
+# mariadb_server__repository_base_url:
 
 # The MariaDB version to install
 mariadb_server__version: 10.2
@@ -25,39 +25,40 @@ mariadb_server__version: 10.2
 
 ### SERVICE CONFIGURATION
 # ---------------------------------------
+# Service user configuration
+mariadb_server__service_user: mysql
+mariadb_server__service_group: mysql
+
 # The name of the systemd mariadb service
 mariadb_server__service_name: mariadb
 
 # If true the mariadb service will be started and enabled
-mariadb_server__service_enabled: True
+mariadb_server__service_enabled: true
 
 # If this is set to true, ansible will automatically restart mariadb daemon on changes
-mariadb_server__service_restartable: True
+mariadb_server__service_restartable: true
 
 # Path to the must restart stamp file
-mariadb_server__service_restart_stamp_file: '/var/local/mariadb-must-restart-stamp'
+mariadb_server__service_restart_stamp_file: /var/local/mariadb-must-restart-stamp
 
 # Path to systemd override directory
-mariadb_server__systemd_override_options_dir: '/etc/systemd/system/{{ mariadb_server__service_name }}.service.d/'
+mariadb_server__service_systemd_override_options_directory:
+  '/etc/systemd/system/{{ mariadb_server__service_name }}.service.d/'
 
 # Place to save run files
-mariadb_server__run_dir: /var/run/mysqld
+mariadb_server__run_directory: /var/run/mysqld
 
 # Prevent Mariadb to load other configuration file
 mariadb_server__service_options:
   - '--defaults-file={{ mariadb_server__main_configuration_file }}'
 
-# Service user configuration
-mariadb_server__user_runas: mysql
-mariadb_server__group_runas: mysql
-
 
 ### SQL ENTITIES
 # ---------------------------------------
 # Specify name of root account to use for ansible configuration
-mariadb_server__root_login: 'root'
+mariadb_server__root_login: root
 # Specify an optional password to setup and to use for root account
-#mariadb_server__root_password:
+# mariadb_server__root_password:
 
 # List of user to create
 mariadb_server__users: []
@@ -65,22 +66,22 @@ mariadb_server__users: []
 mariadb_server__databases: {}
 
 # Monitoring user credentials
-#mariadb_server__monitoring_username:
-#mariadb_server__monitoring_password:
+# mariadb_server__monitoring_username:
+# mariadb_server__monitoring_password:
 
 
 ### SERVER CONFIGURATION
 # ---------------------------------------
 # Main configuration directory
-mariadb_server__configuration_dir: /etc/mysql
+mariadb_server__configuration_directory: /etc/mysql
 # Main configuration file
-mariadb_server__main_configuration_file: '{{ mariadb_server__configuration_dir }}/my.cnf'
+mariadb_server__main_configuration_file: '{{ mariadb_server__configuration_directory }}/my.cnf'
 # Copy the configuration template to all theses place too
 mariadb_server__configuration_alternates_files: []
 # File which contains server specific configurations
-mariadb_server__server_configuration_file: '{{ mariadb_server__configuration_dir }}/server.cnf'
+mariadb_server__server_configuration_file: '{{ mariadb_server__configuration_directory }}/server.cnf'
 # Directory where to put included files
-mariadb_server__include_configuration_dir: '{{ mariadb_server__configuration_dir }}/conf.d'
+mariadb_server__include_configuration_directory: '{{ mariadb_server__configuration_directory }}/conf.d'
 
 # Name of the mariadb client binary
 mariadb_server__client_executable: mariadb
@@ -95,21 +96,20 @@ mariadb_server__configuration_validator: '{{ mariadb_server__client_executable }
 mariadb_server__initdb_check_file: '{{ mariadb_server__datadir }}/mysql'
 
 # Allow insecure root account (available using tcp socket)
-mariadb_server__initdb_insecure: True
+mariadb_server__initdb_insecure: true
 
 
 ### NETWORK SECTION
 # ---------------------------------------
-
 # If set to True, the server does not listen for TCP/IP connections.
 # All interaction with the server by be through socket files (Unix) or named pipes.
-mariadb_server__skip_networking: False
+mariadb_server__skip_networking: false
 
 # Bind address for network
 mariadb_server__bind_address: 0.0.0.0
 mariadb_server__bind_port: 3306
 
-mariadb_server__socket_file: '{{ mariadb_server__run_dir }}/mysqld.sock'
+mariadb_server__socket_file: '{{ mariadb_server__run_directory }}/mysqld.sock'
 
 # The maximum number of simultaneous client connections
 mariadb_server__max_connections: 100
@@ -123,12 +123,12 @@ mariadb_server__max_user_connections: 0
 # If set to True , only IP addresses are used for connections
 # Host names are not resolved.
 # All host values in the GRANT tables must be IP addresses (or localhost)
-mariadb_server__skip_name_resolve: False
+mariadb_server__skip_name_resolve: false
 
 
 ### GENERAL SECTION
 # ---------------------------------------
-mariadb_server__pid_file: '{{ mariadb_server__run_dir }}/mysqld.pid'
+mariadb_server__pid_file: '{{ mariadb_server__run_directory }}/mysqld.pid'
 mariadb_server__datadir: /var/lib/mysql
 mariadb_server__tmpdir: /tmp
 mariadb_server__basedir: /usr
@@ -151,20 +151,20 @@ mariadb_server__log_dir: /var/log/mysql
 
 # Both location gets rotated by the cronjob.
 # Be aware that this log type is a performance killer.
-mariadb_server__general_log: False
+mariadb_server__general_log: false
 mariadb_server__general_log_file: '{{ mariadb_server__log_dir }}/general/mysql.log'
 
 mariadb_server__log_warnings: 2
 mariadb_server__error_log_file: '{{ mariadb_server__log_dir }}/error/error.log'
 
-mariadb_server__slow_query_log: False
+mariadb_server__slow_query_log: false
 mariadb_server__slow_query_log_file: '{{ mariadb_server__log_dir }}/slow-query/mysql-slow.log'
 
 mariadb_server__long_query_time: 2
-mariadb_server__log_queries_not_using_indexes: True
+mariadb_server__log_queries_not_using_indexes: true
 
 # Binary log
-mariadb_server__binlog_enabled: False
+mariadb_server__binlog_enabled: false
 mariadb_server__binlog_dir: '{{ mariadb_server__log_dir }}/binlog'
 mariadb_server__expire_logs_days: 0
 mariadb_server__max_binlog_size: 1G
@@ -183,7 +183,7 @@ mariadb_server__innodb_log_file_size: 48MB
 
 ### REPLICATION SECTION
 # ---------------------------------------
-mariadb_server__replication_enabled: False
+mariadb_server__replication_enabled: false
 # Set a random number in the available range
 mariadb_server__server_id: '{{ 4294967290|random(seed=inventory_hostname)+1 }}'
 
@@ -198,13 +198,13 @@ mariadb_server__replicate_wild_ignore_table: []
 
 ### PERFORMANCE SCHEMA SECTION
 # ---------------------------------------
-mariadb_server__performance_schema: True
+mariadb_server__performance_schema: true
 
 
 ### SECURITY SECTION
 # ---------------------------------------
 # Connections will be blocked unless clients use the current password format.
-mariadb_server__secure_auth: True
+mariadb_server__secure_auth: true
 
 # LOAD DATA, SELECT ... INTO and LOAD FILE() will only work with files in the specified path.
 # If not set, the default, the statements will work with any files that can be accessed.
@@ -218,8 +218,8 @@ mariadb_server__innodb_data_home_dir: '{{ mariadb_server__datadir }}'
 
 ### MyISAM SECTION
 # ---------------------------------------
-# If set, external locking for MyISAM tables is disabled. 
-mariadb_server__skip_external_locking: True
+# If set, external locking for MyISAM tables is disabled.
+mariadb_server__skip_external_locking: true
 
 
 ### QUERY CACHE SECTION
@@ -227,10 +227,10 @@ mariadb_server__skip_external_locking: True
 # If set to 0, the query cache is disabled (although a buffer of query_cache_size bytes is still allocated)
 # If set to 1 all SELECT queries will be cached unless SQL_NO_CACHE is specified
 # If set to 2 (or DEMAND), only queries with the SQL CACHE clause will be cached
-mariadb_server__query_cache_type: False
+mariadb_server__query_cache_type: false
 
 # If set to True the server will strip any comments from the query before searching to see if it exists in the query cache
-mariadb_server__query_cache_strip_comments: False
+mariadb_server__query_cache_strip_comments: false
 
 # Size in bytes available to the query cache
 mariadb_server__query_cache_size: 1M
@@ -255,9 +255,10 @@ mariadb_server__tuning_group_parameters: {}
 mariadb_server__tuning_host_parameters: {}
 
 # Combine all customs parameters
-mariadb_server__tuning_parameters: '{{ mariadb_server__tuning_global_parameters
-                                | combine(mariadb_server__tuning_group_parameters)
-                                | combine(mariadb_server__tuning_host_parameters) }}'
+mariadb_server__tuning_parameters: '{{
+  mariadb_server__tuning_global_parameters
+  | combine(mariadb_server__tuning_group_parameters)
+  | combine(mariadb_server__tuning_host_parameters) }}'
 
 
 ### CLIENTS CONFIGURATION SECTION
@@ -267,9 +268,9 @@ mariadb_server__clients_defaults_parameters:
     socket: '{{ mariadb_server__socket_file }}'
     port: '{{ mariadb_server__bind_port|int }}'
     default-character-set: '{{ mariadb_server__character_set_server }}'
-#    ssl-cert: /etc/mysql/client-cert.pem
-#    ssl-key: /etc/mysql/client-key.pem
-#    ssl-verify-server-cert: on
+    # ssl-cert: /etc/mysql/client-cert.pem
+    # ssl-key: /etc/mysql/client-key.pem
+    # ssl-verify-server-cert: on
   mysql:
     no-auto-rehash:
     prompt: "\"{{ mariadb_server__clients_prompt|d('MariaDB') }}> \""
@@ -305,25 +306,26 @@ mariadb_server__clients_group_parameters: {}
 mariadb_server__clients_host_parameters: {}
 
 # final merged parameters
-mariadb_server__clients_parameters: '{{ mariadb_server__clients_defaults_parameters
-                                | combine(mariadb_server__clients_global_parameters)
-                                | combine(mariadb_server__clients_group_parameters)
-                                | combine(mariadb_server__clients_host_parameters) }}'
+mariadb_server__clients_parameters: '{{
+  mariadb_server__clients_defaults_parameters
+  | combine(mariadb_server__clients_global_parameters)
+  | combine(mariadb_server__clients_group_parameters)
+  | combine(mariadb_server__clients_host_parameters) }}'
 
 # TLS configuration
-#mariadb_server__ssl_ca:
-#mariadb_server__ssl_capath:
-#mariadb_server__ssl_cert: 
-#mariadb_server__ssl_key: 
-#mariadb_server__ssl_cipher:
-#mariadb_server__ssl_crl:
-#mariadb_server__ssl_crlpath:
+# mariadb_server__ssl_ca:
+# mariadb_server__ssl_capath:
+# mariadb_server__ssl_cert:
+# mariadb_server__ssl_key:
+# mariadb_server__ssl_cipher:
+# mariadb_server__ssl_crl:
+# mariadb_server__ssl_crlpath:
 
 
 # List of GPG keys to add
 mariadb_server__gpg_keys:
   Debian:
-    - id:        177F4010FE56CA3336300305F1656F24C74CD1D8
+    - id: 177F4010FE56CA3336300305F1656F24C74CD1D8
       keyserver: keyserver.ubuntu.com
-    - id:        199369E5404BD5FC7D2FE43BCBCB082A1BB943DB
+    - id: 199369E5404BD5FC7D2FE43BCBCB082A1BB943DB
       keyserver: keyserver.ubuntu.com
