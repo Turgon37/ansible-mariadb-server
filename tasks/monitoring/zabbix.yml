@@ -81,7 +81,7 @@
           command: "mysqladmin --defaults-file={{ zabbix_agent__userparameters_conf_directory|d('/etc/zabbix/userparameters_config.d') }}/mariadb.cnf ping 1>/dev/null 2>&1; echo $?"
           comment: Check if mysqld is alive
         - key: mariadb.version
-          command: "for i in `seq 4`; do mysqladmin --defaults-file={{ zabbix_agent__userparameters_conf_directory|d('/etc/zabbix/userparameters_config.d') }}/mariadb.cnf version && break; sleep 0.4; done | grep '^Server version' | awk '{ print $3 }'"
+          command: "for i in `seq 4`; do mysqladmin --defaults-file={{ zabbix_agent__userparameters_conf_directory|d('/etc/zabbix/userparameters_config.d') }}/mariadb.cnf version 2>/dev/null && break; sleep 0.4; done | grep '^Server version' | awk '{ print $3 }'"
           comment: Return the current version of the server
         - key: mariadb.status
           command: "{{ zabbix_agent__custom_scripts_directory|d('/opt/zabbix-agent-scripts') }}/mariadb_status_cli.py --type=status"
