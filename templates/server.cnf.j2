@@ -88,8 +88,6 @@ innodb_log_file_size      = {{ mariadb_server__innodb_log_file_size }}
 #
 {% if mariadb_server__replication_enabled %}
 server-id               = {{ mariadb_server__server_id|int }}
-{% else %}
-server-id               = 0
 {% endif %}
 
 # replicate databases

@@ -2,17 +2,16 @@
 
 - name: Remove conflicting packages
   package:
-    name: '{{ item }}'
+    name: '{{ mariadb_server__conflict_packages_names|list }}'
     state: absent
-  with_items: '{{ mariadb_server__conflict_packages_names|list }}'
 
 - name: Install required packages
   package:
-    name: '{{ item }}'
+    name: '{{ mariadb_server__required_packages_names|list }}'
     state: present
-  with_items: '{{ mariadb_server__required_packages_names|list }}'
 
-- include_tasks: '{{ file_item }}'
+- name: Including specific install tasks
+  include_tasks: '{{ file_item }}'
   with_first_found:
     - files:
         - 'install-{{ ansible_distribution }}-{{ ansible_architecture }}.yml'
@@ -21,6 +20,12 @@
         - 'install-{{ ansible_os_family }}.yml'
   loop_control:
     loop_var: file_item
+
+- name: Install server packages
+  package:
+    name: '{{ mariadb_server__packages_names|list }}'
+    state: present
+  register: _mariadb_server__packages
 
 - name: Wait for the server to init its database
   pause:
