@@ -9,9 +9,20 @@
     state: directory
   tags: ['mariadb-server', 'mariadb-server-monitoring']
 
-- name: Setup monitoring MariaDB user
+- name: Remove previous MariaDB monitoring user
   mysql_user:
     name: '{{ mariadb_server__monitoring_username }}'
+    host: localhost
+    priv: '*.*:PROCESS,REPLICATION CLIENT'
+    login_unix_socket: '{{ mariadb_server__socket_file }}'
+    login_user: '{{ mariadb_server__root_login }}'
+    login_password: '{{ mariadb_server__root_password|d(omit) }}'
+    state: absent
+  tags: ['mariadb-server', 'mariadb-server-monitoring']
+
+- name: Setup MariaDB monitoring MariaDB user
+  mysql_user:
+    name: '{{ _mariadb_server__monitoring_username }}'
     password: '{{ mariadb_server__monitoring_password }}'
     host: localhost
     priv: '*.*:PROCESS,REPLICATION CLIENT'
@@ -28,7 +39,7 @@
     {% if mariadb_server__root_password is defined %} --password={{ mariadb_server__root_password }}{% endif %}
     --socket={{ mariadb_server__socket_file }}
     --batch --skip-column-names
-    --execute="SELECT `max_user_connections` FROM `mysql`.`user` WHERE `user` = '{{ mariadb_server__monitoring_username }}' AND `host` = 'localhost'"
+    --execute="SELECT `max_user_connections` FROM `mysql`.`user` WHERE `user` = '{{ _mariadb_server__monitoring_username }}' AND `host` = 'localhost'"
   register: _mariadb_server__monitoring_max_connections
   check_mode: false
   changed_when: false
@@ -41,7 +52,7 @@
     {% if mariadb_server__root_password is defined %} --password={{ mariadb_server__root_password }}{% endif %}
     --socket={{ mariadb_server__socket_file }}
     --batch --skip-column-names
-    --execute="UPDATE `mysql`.`user` SET `max_user_connections` = 1 WHERE `user` = '{{ mariadb_server__monitoring_username }}' AND `host` = 'localhost' LIMIT 1; FLUSH PRIVILEGES;"
+    --execute="UPDATE `mysql`.`user` SET `max_user_connections` = 1 WHERE `user` = '{{ _mariadb_server__monitoring_username }}' AND `host` = 'localhost' LIMIT 1; FLUSH PRIVILEGES;"
   when: _mariadb_server__monitoring_max_connections.stdout|int != 1
   tags: ['mariadb-server', 'mariadb-server-monitoring']
 
@@ -64,7 +75,7 @@
             - mysqladmin
             - connector_python
           host: localhost
-          user: '{{ mariadb_server__monitoring_username }}'
+          user: '{{ _mariadb_server__monitoring_username }}'
           password: '{{ mariadb_server__monitoring_password }}'
           socket: '{{ mariadb_server__socket_file }}'
   tags: ['mariadb-server', 'mariadb-server-monitoring']
