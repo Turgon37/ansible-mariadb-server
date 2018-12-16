@@ -6,11 +6,3 @@
     msg: Unsupported package manager
   when: ansible_pkg_mgr != 'apt'
   tags: ['always']
-
-- name: Install server package
-  apt:
-    name: '{{ item }}'
-    state: present
-  with_items: '{{ mariadb_server__packages_names|list }}'
-  register: _mariadb_server__packages
-  tags: ['mariadb-server', 'mariadb-server-install']

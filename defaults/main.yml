@@ -65,9 +65,22 @@ mariadb_server__users: []
 # List of database to create
 mariadb_server__databases: {}
 
+
+### MONITORING
+# ---------------------------------------
 # Monitoring user credentials
-# mariadb_server__monitoring_username:
-# mariadb_server__monitoring_password:
+mariadb_server__monitoring_username: mon_zabbix
+mariadb_server__monitoring_username_prefix: mon
+
+# I recommend you to change it
+mariadb_server__monitoring_password: monitoring
+
+## Prometheus monitoring
+# Which exporter version do you want
+mysqld_exporter__version: 0.11.0
+
+# Extra exporter command line options
+mariadb_server__monitoring_mysqld_exporter_extra_cmdline: ''
 
 
 ### SERVER CONFIGURATION
@@ -326,6 +339,6 @@ mariadb_server__clients_parameters: '{{
 mariadb_server__gpg_keys:
   Debian:
     - id: 177F4010FE56CA3336300305F1656F24C74CD1D8
-      keyserver: keyserver.ubuntu.com
+      url: 'http://keyserver.ubuntu.com/pks/lookup?op=get&search=0x177F4010FE56CA3336300305F1656F24C74CD1D8'
     - id: 199369E5404BD5FC7D2FE43BCBCB082A1BB943DB
-      keyserver: keyserver.ubuntu.com
+      url: 'http://keyserver.ubuntu.com/pks/lookup?op=get&search=0x199369E5404BD5FC7D2FE43BCBCB082A1BB943DB'

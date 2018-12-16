@@ -1,0 +1,66 @@
+---
+
+- name: Setup MariaDB monitoring MariaDB user
+  mysql_user:
+    name: '{{ _mariadb_server__monitoring_username }}'
+    password: '{{ mariadb_server__monitoring_password }}'
+    host: localhost
+    priv: '*.*:PROCESS,REPLICATION CLIENT'
+    login_unix_socket: '{{ mariadb_server__socket_file }}'
+    login_user: '{{ mariadb_server__root_login }}'
+    login_password: '{{ mariadb_server__root_password|d(omit) }}'
+    state: present
+  tags: ['mariadb-server', 'mariadb-server-monitoring']
+
+- name: Get current max connections value for monitoring user
+  command: >
+    {{ mariadb_server__client_executable }}
+    --user={{ mariadb_server__root_login }}
+    {% if mariadb_server__root_password is defined %} --password={{ mariadb_server__root_password }}{% endif %}
+    --socket={{ mariadb_server__socket_file }}
+    --batch --skip-column-names
+    --execute="SELECT `max_user_connections` FROM `mysql`.`user` WHERE `user` = '{{ _mariadb_server__monitoring_username }}' AND `host` = 'localhost'"
+  register: _mariadb_server__monitoring_max_connections
+  check_mode: false
+  changed_when: false
+  tags: ['mariadb-server', 'mariadb-server-monitoring']
+
+- name: Set current max connections value for monitoring user
+  command: >
+    {{ mariadb_server__client_executable }}
+    --user={{ mariadb_server__root_login }}
+    {% if mariadb_server__root_password is defined %} --password={{ mariadb_server__root_password }}{% endif %}
+    --socket={{ mariadb_server__socket_file }}
+    --batch --skip-column-names
+    --execute="UPDATE `mysql`.`user` SET `max_user_connections` = 1 WHERE `user` = '{{ _mariadb_server__monitoring_username }}' AND `host` = 'localhost' LIMIT 1; FLUSH PRIVILEGES;"
+  when: _mariadb_server__monitoring_max_connections.stdout|int != 1
+  tags: ['mariadb-server', 'mariadb-server-monitoring']
+
+- name: Install monitoring credentials
+  include_tasks: types/credential_cnf.yml
+  vars:
+    mariadb_server__credential_cnf:
+      path: '{{ mariadb_server__configuration_directory}}/monitoring_{{ monitoring_backend }}.cnf'
+      groups:
+        - group:
+            - client
+          host: localhost
+          user: '{{ _mariadb_server__monitoring_username }}'
+          password: '{{ mariadb_server__monitoring_password }}'
+          socket: '{{ mariadb_server__socket_file }}'
+  tags: ['mariadb-server', 'mariadb-server-monitoring']
+
+- name: Including prometheus_exporter role for exporter installation
+  import_role:
+    name: turgon37.prometheus_exporter
+  vars:
+    prometheus_exporter__name: mysqld_exporter
+    prometheus_exporter__download_url:
+      "https://github.com/prometheus/mysqld_exporter/releases/download/\
+      v{{ prometheus_exporter__version }}/\
+      mysqld_exporter-{{ prometheus_exporter__version }}.linux\
+      -{{ prometheus_exporter__go_arch_map[ansible_architecture]|d(ansible_architecture) }}.tar.gz"
+    prometheus_exporter__temporary_file_extension: .tar.gz
+    prometheus_exporter__service_cmdline: >-
+      --config.my-cnf {{ mariadb_server__configuration_directory}}/monitoring_{{ monitoring_backend }}.cnf
+      {{ mariadb_server__monitoring_mysqld_exporter_extra_cmdline }}

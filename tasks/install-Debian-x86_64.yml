@@ -1,9 +1,55 @@
 ---
 
-- name: Add MariaDB repository GPG key to apt keyring
+- name: Download MariaDB repository GPG key into local folder
+  get_url:
+    url: "{{ item.url|d('http://keyserver.ubuntu.com/pks/lookup?op=get&search=0x'~item.id) }}"
+    dest: '/tmp/mariadb_server__gpg-{{ item.id }}'
+    mode: 0644
+  with_items: '{{
+    mariadb_server__gpg_keys[ansible_lsb.id]
+    if (ansible_lsb.id is defined and ansible_lsb.id in mariadb_server__gpg_keys)
+    else (
+      mariadb_server__gpg_keys[ansible_distribution]
+      if (ansible_distribution is defined and ansible_distribution in mariadb_server__gpg_keys)
+      else (
+        mariadb_server__gpg_keys[ansible_os_family]
+        if (ansible_os_family in mariadb_server__gpg_keys)
+        else ([])
+      )
+    ) }}'
+  when: item.state|d('present') == 'present'
+  register: _mariadb_server__gpg_download
+  until: _mariadb_server__gpg_download is succeeded
+  retries: 5
+  delay: 2
+  check_mode: false
+  delegate_to: localhost
+  tags: ['mariadb-server', 'mariadb-server-install']
+
+- name: Upload MariaDB repository GPG key to server
+  copy:
+    src: '/tmp/mariadb_server__gpg-{{ item.id }}'
+    dest: '/tmp/mariadb_server__gpg-{{ item.id }}'
+  with_items: '{{
+    mariadb_server__gpg_keys[ansible_lsb.id]
+    if (ansible_lsb.id is defined and ansible_lsb.id in mariadb_server__gpg_keys)
+    else (
+      mariadb_server__gpg_keys[ansible_distribution]
+      if (ansible_distribution is defined and ansible_distribution in mariadb_server__gpg_keys)
+      else (
+        mariadb_server__gpg_keys[ansible_os_family]
+        if (ansible_os_family in mariadb_server__gpg_keys)
+        else ([])
+      )
+    ) }}'
+  when: item.state|d('present') == 'present'
+  check_mode: false
+  tags: ['mariadb-server', 'mariadb-server-install']
+
+- name: Ensure MariaDB repository GPG key to apt keyring
   apt_key:
     id: '{{ item.id }}'
-    keyserver: '{{ item.keyserver }}'
+    file: "{{ omit if item.state|d('present') != 'present' else '/tmp/mariadb_server__gpg-'~item.id }}"
     state: "{{ item.state|d('present') }}"
   with_items: '{{
     mariadb_server__gpg_keys[ansible_lsb.id]
@@ -17,28 +63,6 @@
         else ([])
       )
     ) }}'
-  register: _mariadb_server__apt_key
-  ignore_errors: '{{ http_proxy is defined }}'
-  tags: ['mariadb-server', 'mariadb-server-install']
-
-- name: Add repository APT key using http proxy
-  command: >
-    apt-key adv
-    --keyserver-options "http-proxy={{ http_proxy }}"
-    --keyserver '{{ item.keyserver }}' --recv-keys '{{ item.id }}'
-  with_items: '{{
-    mariadb_server__gpg_keys[ansible_lsb.id]
-    if (ansible_lsb.id is defined and ansible_lsb.id in mariadb_server__gpg_keys)
-    else (
-      mariadb_server__gpg_keys[ansible_distribution]
-      if (ansible_distribution is defined and ansible_distribution in mariadb_server__gpg_keys)
-      else (
-        mariadb_server__gpg_keys[ansible_os_family]
-        if (ansible_os_family in mariadb_server__gpg_keys)
-        else ([])
-      )
-    ) }}'
-  when: _mariadb_server__apt_key is failed and http_proxy is defined
   tags: ['mariadb-server', 'mariadb-server-install']
 
 - name: Add APT repository
@@ -51,13 +75,11 @@
       {{ ansible_distribution_release|lower }}
       main
     state: present
+  register: _mariadb_server__repository
   tags: ['mariadb-server', 'mariadb-server-install']
 
-- name: Install server packages
+- name: Update package list
   apt:
-    name: '{{ item }}'
     update_cache: true
-    state: present
-  with_items: '{{ mariadb_server__packages_names|list }}'
-  register: _mariadb_server__packages
+  when: _mariadb_server__repository is changed
   tags: ['mariadb-server', 'mariadb-server-install']

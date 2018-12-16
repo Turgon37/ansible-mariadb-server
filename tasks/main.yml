@@ -48,8 +48,14 @@
   tags: ['mariadb-server', 'mariadb-server-users']
 
 - name: Optionally importing monitoring tasks
-  include_tasks: 'monitoring/{{ mariadb_server__monitoring }}.yml'
+  include_tasks: 'monitoring/{{ monitoring_backend }}.yml'
+  with_items: '{{ [mariadb_server__monitoring]|flatten|unique|list }}'
   when: mariadb_server__monitoring is defined
+  loop_control:
+    loop_var: monitoring_backend
+  vars:
+    _mariadb_server__monitoring_username:
+      '{{ mariadb_server__monitoring_username_prefix }}_{{ monitoring_backend }}'
   tags: ['mariadb-server', 'mariadb-server-monitoring']
 
 - name: Optionally importing facts tasks
