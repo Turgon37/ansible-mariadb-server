@@ -28,6 +28,7 @@
     login_user: '{{ mariadb_server__root_login }}'
     login_password: '{{ mariadb_server__root_password }}'
     check_implicit_admin: true
+    config_file: /dev/null
     state: present
   when: mariadb_server__root_password is defined
   ignore_errors: true
