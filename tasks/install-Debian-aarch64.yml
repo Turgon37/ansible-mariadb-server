@@ -2,7 +2,8 @@
 
 # Use debian package
 
-- fail:
+- name: Fail if package manager is wrong
+  fail:
     msg: Unsupported package manager
   when: ansible_pkg_mgr != 'apt'
   tags: ['always']
