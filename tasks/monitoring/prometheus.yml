@@ -40,7 +40,7 @@
   include_tasks: types/credential_cnf.yml
   vars:
     mariadb_server__credential_cnf:
-      path: '{{ mariadb_server__configuration_directory}}/monitoring_{{ monitoring_backend }}.cnf'
+      path: '{{ mariadb_server__configuration_directory }}/monitoring_{{ monitoring_backend }}.cnf'
       groups:
         - group:
             - client
@@ -62,5 +62,5 @@
       -{{ prometheus_exporter__go_arch_map[ansible_architecture]|d(ansible_architecture) }}.tar.gz"
     prometheus_exporter__temporary_file_extension: .tar.gz
     prometheus_exporter__service_cmdline: >-
-      --config.my-cnf {{ mariadb_server__configuration_directory}}/monitoring_{{ monitoring_backend }}.cnf
+      --config.my-cnf {{ mariadb_server__configuration_directory }}/monitoring_{{ monitoring_backend }}.cnf
       {{ mariadb_server__monitoring_mysqld_exporter_extra_cmdline }}
