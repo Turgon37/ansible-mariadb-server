@@ -1,6 +1,7 @@
 ---
 
 - name: Download MariaDB repository GPG key into local folder
+  become: false
   get_url:
     url: "{{ item.url|d('http://keyserver.ubuntu.com/pks/lookup?op=get&search=0x'~item.id) }}"
     dest: '/tmp/mariadb_server__gpg-{{ item.id }}'
