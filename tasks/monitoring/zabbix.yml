@@ -46,7 +46,7 @@
   tags: ['mariadb-server', 'mariadb-server-monitoring']
 
 - name: Set current max connections value for monitoring user
-  command: >
+  command: >-
     {{ mariadb_server__client_executable }}
     --user={{ mariadb_server__root_login }}
     {% if mariadb_server__root_password is defined %} --password={{ mariadb_server__root_password }}{% endif %}
