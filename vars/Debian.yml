@@ -7,7 +7,10 @@ mariadb_server__required_packages_names:
   - 'python{{ python__version_major|d(3) }}-mysqldb'
   - software-properties-common
 
-mariadb_server__repository_base_url: 'http://ftp.igh.cnrs.fr/pub/mariadb/repo/{{ mariadb_server__version }}/debian'
+mariadb_server__repository_base_url: >-
+  http://downloads.mariadb.com/MariaDB/{{ mariadb_server__version }}/repo/debian
+  {{ ansible_distribution_release }}
+  main
 
 mariadb_server__packages_names:
   - 'mariadb-server-{{ mariadb_server__version }}'

@@ -338,7 +338,12 @@ mariadb_server__clients_parameters: '{{
 # List of GPG keys to add
 mariadb_server__gpg_keys:
   Debian:
+    # Main key for debian => stretch
     - id: 177F4010FE56CA3336300305F1656F24C74CD1D8
       url: 'http://keyserver.ubuntu.com/pks/lookup?op=get&search=0x177F4010FE56CA3336300305F1656F24C74CD1D8'
+    # Main key for debian < stretch
     - id: 199369E5404BD5FC7D2FE43BCBCB082A1BB943DB
-      url: 'http://keyserver.ubuntu.com/pks/lookup?op=get&search=0x199369E5404BD5FC7D2FE43BCBCB082A1BB943DB'
+      url: 'https://downloads.mariadb.com/MariaDB/MariaDB-Server-GPG-KEY'
+    # Max scale key
+    - id: 7B963F525AD3AE6259058D30135659E928C12247
+      url: 'https://downloads.mariadb.com/MaxScale/MariaDB-MaxScale-GPG-KEY'
