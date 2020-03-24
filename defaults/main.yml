@@ -20,7 +20,7 @@ mariadb_server__required_packages_names: []
 # mariadb_server__repository_base_url:
 
 # The MariaDB version to install
-mariadb_server__version: 10.2
+mariadb_server__version: 10.4
 
 
 ### SERVICE CONFIGURATION
