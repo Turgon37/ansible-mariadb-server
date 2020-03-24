@@ -33,8 +33,6 @@ provisioner:
   name: ansible
   lint:
     name: ansible-lint
-    options:
-      x: ["204"]
 scenario:
   name: default
 verifier:
