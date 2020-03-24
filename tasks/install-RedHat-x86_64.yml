@@ -17,9 +17,8 @@
 
 - name: Install server package
   yum:
-    name: '{{ item }}'
+    name: '{{ mariadb_server__packages_names|list }}'
     update_cache: true
     state: present
-  with_items: '{{ mariadb_server__packages_names|list }}'
   register: _mariadb_server__packages
   tags: ['mariadb-server', 'mariadb-server-install']
