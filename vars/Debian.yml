@@ -4,7 +4,7 @@ mariadb_server__required_packages_names:
   - dirmngr
   - libterm-readkey-perl
   - libdbd-mysql-perl
-  - 'python{{ python__version_major|d(3) }}-mysqldb'
+  - 'python{{ python__version_major|d((ansible_distribution_major_version > 8)|ternary(3, 2)) }}-mysqldb'
   - software-properties-common
 
 mariadb_server__repository_base_url: >-
