@@ -11,7 +11,7 @@
 
 - name: Insert custom fact file
   template:
-    src: mariadb.fact.py.j2
+    src: mariadb.facts.py.j2
     dest: "{{ facts__dir|d('/etc/ansible/facts.d') }}/mariadb.fact"
     owner: root
     group: root
